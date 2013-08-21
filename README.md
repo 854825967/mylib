@@ -1,0 +1,4 @@
+mylib
+=====
+
+liblog,libnet
