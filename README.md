@@ -32,4 +32,4 @@ Contact Me
 ------------------
    * Email: [Alax's email][1]
    
-[1]: 854825967@qq.com "854825967@qq.com"
+[1]: mailto:854825967@qq.com "mailto:854825967@qq.com"
