@@ -30,6 +30,6 @@ Use this interface start net event<br />
 
 Contact Me
 ------------------
-   * Email: [Alax's email][1]
+   * Email: [Alax's email:854825967@qq.com][1]
    
 [1]: mailto:854825967@qq.com "mailto:854825967@qq.com"
