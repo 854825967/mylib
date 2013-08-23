@@ -11,10 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <tr1/unordered_map>
-using namespace std::tr1;
 
-#define CHashMap unordered_map
 #define CSleep(n) usleep((n) * 1000)
 #define SafeSprintf snprintf
 
@@ -40,7 +37,6 @@ using namespace std::tr1;
     char log[4096] = {0}; \
     SafeSprintf(log, 4096, format, ##a); \
     printf("[error]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, log); \
-    ASSERT(false); \
     }
 
     typedef unsigned char u8;

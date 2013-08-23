@@ -153,5 +153,36 @@ inline string StringReplace(const char * pString, const char * pSrc, const char 
     return pChSrc;
 }
 
+inline string GBKToUTF8(const char * pStrGBK) {
+	string strOutUTF8 = "";
+	wchar_t * pStrWChar = NULL;
+	int n = MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, NULL, 0);
+	pStrWChar = new wchar_t[n];
+	MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, pStrWChar, n);
+	n = WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, NULL, 0, NULL, NULL);
+	char * pStrChar = new char[n];
+	WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, pStrChar, n, NULL, NULL);
+	strOutUTF8 = pStrChar;
+	delete[] pStrChar;
+	delete[] pStrWChar;
+	return strOutUTF8;
+}
+
+inline string UTF8ToGBK(const char * pStrUtf8) {
+		int len=MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, NULL,0);
+		wchar_t * wszGBK = NEW wchar_t[len];
+		memset(wszGBK, 0, len);
+		MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, (LPWSTR)wszGBK, len); 
+
+		len = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, NULL, 0, NULL, NULL);
+		char *szGBK=NEW char[len + 1];
+		memset(szGBK, 0, len + 1);
+		WideCharToMultiByte (CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL,NULL);
+		string temp(szGBK);
+		delete[] szGBK;
+		delete[] wszGBK;
+		return temp;
+}
+
 #endif //WINTOOLS_H
 #endif //#if defined WIN32 || defined WIN64

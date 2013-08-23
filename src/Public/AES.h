@@ -1,20 +1,20 @@
-#ifndef AES_H
-#define AES_H
-
-#include <string.h>
+#ifndef _AES_H__
+#define _AES_H__
 
 class AES
 {
 public:
 	AES(unsigned char* key);
-	virtual ~AES();
-	unsigned char* Cipher(unsigned char* input);
-	unsigned char* InvCipher(unsigned char* input);
-	void* Cipher(void* input, int length=0);
-	void* InvCipher(void* input, int length);
+	~AES();
 
-	void Cipher(char *input, char *output);
-	void InvCipher(char *inut, char *output);
+	// 加密过程
+	unsigned char* Cipher(unsigned char* input);
+	// 解密过程
+	unsigned char* InvCipher(unsigned char* input);
+	// 外部数据加密过程
+	void* Cipher(void* input, int length=0);
+	// 外部数据解密过程
+	void* InvCipher(void* input, int length);
 
 private:
 	unsigned char Sbox[256];
@@ -32,16 +32,6 @@ private:
 	void InvSubBytes(unsigned char state[][4]);
 	void InvShiftRows(unsigned char state[][4]);
 	void InvMixColumns(unsigned char state[][4]);
-
-	int strToHex(const char *ch, char *hex);
-	int hexToStr(const char *hex, char *ch);
-	int ascillToValue(const char ch);
-	char valueToHexCh(const int value);
-	int getUCharLen(const unsigned char *uch);
-	int strToUChar(const char *ch, unsigned char *uch);
-	int ucharToStr(const unsigned char *uch, char *ch);
-	int ucharToHex(const unsigned char *uch, char *hex);
-	int hexToUChar(const char *hex, unsigned char *uch);
 };
 
-#endif // AES_H
+#endif//_AES_H__

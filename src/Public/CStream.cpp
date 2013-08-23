@@ -3,8 +3,7 @@
 
 CStream::CStream()
 {
-    m_pBuff = NEW char[STREAM_LENGTH];
-    memset(m_pBuff, 0, STREAM_LENGTH);
+    memset(m_szBuff, 0, sizeof(m_szBuff));
     m_nReadCurrent = 0;
     m_nWriteCurrent = 0;
     m_nMaxLength = STREAM_LENGTH;
@@ -12,22 +11,18 @@ CStream::CStream()
 
 CStream::~CStream()
 {
-    if (NULL != m_pBuff)
-    {
-        delete[] m_pBuff;
-        m_pBuff = NULL;
-    }
+
 }
 
-char * CStream::GetBuff() const{
-    return m_pBuff + m_nReadCurrent;
+const char * CStream::GetBuff() const{
+    return (char *)&m_szBuff[m_nReadCurrent];
 }
 
-u32 CStream::GetLength() const{
+s32 CStream::GetLength() const{
     return m_nWriteCurrent - m_nReadCurrent;
 }
 
-bool CStream::In(const void * pBuff, u32 nLength) 
+bool CStream::In(const void * pBuff, s32 nLength) 
 {
     if (NULL == pBuff ||
         nLength <= 0 )
@@ -53,20 +48,20 @@ bool CStream::In(const void * pBuff, u32 nLength)
     if (nLength > m_nMaxLength - m_nWriteCurrent)
     {
         if (m_nWriteCurrent != m_nReadCurrent) {
-            memcpy(m_pBuff, m_pBuff + m_nReadCurrent, m_nWriteCurrent - m_nReadCurrent);
+            memcpy(&m_szBuff[m_nWriteCurrent], m_szBuff + m_nReadCurrent, m_nWriteCurrent - m_nReadCurrent);
         }
         m_nWriteCurrent = m_nWriteCurrent - m_nReadCurrent;
         m_nReadCurrent = 0;
     }
 
-    memcpy(m_pBuff + m_nWriteCurrent, pBuff, nLength);
+    memcpy(&m_szBuff[m_nWriteCurrent], pBuff, nLength);
 
     m_nWriteCurrent += nLength;
 
     return true;
 }
 
-char * CStream::Out(u32 & nLength)
+const char * CStream::Out(s32 & nLength)
 {
     u32 nPosition = m_nReadCurrent;
     if (m_nWriteCurrent - m_nReadCurrent < nLength)
@@ -86,7 +81,7 @@ char * CStream::Out(u32 & nLength)
         m_nReadCurrent += nLength;
     }
 
-    return m_pBuff + nPosition;
+    return (char *)&m_szBuff[nPosition];// + nPosition;
 }
 
 void CStream::Clear()

@@ -15,7 +15,8 @@ inline void _AssertionFail(const char * strFile, int nLine, const char * pFunNam
 #endif
 
 #ifdef _DEBUG
-#define NEW ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
+//#define NEW ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define NEW new
 #ifndef ASSERT
 
 #ifdef __cplusplus

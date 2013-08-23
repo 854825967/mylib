@@ -15,13 +15,10 @@
 #include <tchar.h>
 #include <stdlib.h>
 #include <direct.h>
-#include <hash_map>
-using namespace std;
 
 #pragma comment( lib, "ws2_32.lib" )
 #pragma comment(lib, "shlwapi.lib")
 
-#define CHashMap hash_map
 #define CSleep(n) Sleep(n)
 #define SafeSprintf _snprintf_s
 #define ThreadID DWORD

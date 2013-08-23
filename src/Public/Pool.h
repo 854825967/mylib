@@ -105,14 +105,14 @@ typedef list<type *> UNIT_POOL;
         UNIT_POOL::iterator itor = ::find(ibegin, iend, punit);
         if (itor != iend) {
             test --;
-            ASSERT(test == 0);
+            //ASSERT(test == 0);
             POOL_OPT_FREELOCK(islock, m_lock);
             return false;
         }
         m_pool.push_back(punit);
         punit->Clear();
         test --;
-        ASSERT(test == 0);
+        //ASSERT(test == 0);
         POOL_OPT_FREELOCK(islock, m_lock);
         return true;
     }

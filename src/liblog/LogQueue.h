@@ -16,6 +16,7 @@ public:
     LogQueue() {
         m_nCrtOut = 0;
         m_nCrtIn = 0;
+		memset(m_logpool, 0, sizeof(m_logpool));
     }
 
     virtual bool Out(OUT Log & log) {

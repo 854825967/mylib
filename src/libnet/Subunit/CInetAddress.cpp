@@ -16,7 +16,6 @@ void CInetAddress::Initialize(const char * pStrIp /* = NULL */, const u16 nPort 
 bool CInetAddress::SetIp(const char * pStrIp) {
     if((m_address.sin_addr.s_addr = inet_addr(pStrIp)) == INADDR_NONE) {
         ECHO_ERROR("Error ip format, ip : %s", pStrIp);
-        ASSERT(false);
         return false;
     }
 

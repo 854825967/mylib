@@ -20,14 +20,14 @@ public:
 
     char * Read(u32 & size) {
         size = m_sendbuff.GetLength();
-        return m_sendbuff.GetBuff();
+        return (char *)m_sendbuff.GetBuff();
     }
-
+	 
     bool StreamIsEmpty() {
         return (0 == m_sendbuff.GetLength());
     }
 
-    void Out(u32 nSize) {
+    void Out(s32 nSize) {
         m_sendbuff.Out(nSize);
     }
 

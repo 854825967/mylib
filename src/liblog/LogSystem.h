@@ -10,6 +10,7 @@
 
 #include "MultiSys.h"
 #include "ILog.h"
+#include "CHashMap.h"
 #include "LogQueue.h"
 #include <string>
 #include <fstream>

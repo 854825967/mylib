@@ -18,7 +18,7 @@ typedef void (*CALL_FUN)(const u16 conid, const void * buff, const u32 size);
 
 class INet {
 public:
-    virtual bool CListen(const char * ip, const u16 port, const u16 count = 200, const void * buff = NULL, const u32 size = 0)  = 0;
+    virtual bool CListen(const char * ip, const u16 port, const u16 count = 200)  = 0;
     virtual bool CConnectEx(const char * ip, const u16 port, const void * buff = NULL, const u32 size = 0)  = 0;
     virtual bool CClose(const u16 conid)  = 0;
     virtual bool CSendMsg(const u16 conid, const void * buff, const u16 size)  = 0;
@@ -29,7 +29,7 @@ public:
     virtual bool CSetConnectionBreakCall(const CALL_FUN pbreakfun) = 0;
     virtual bool CSetRecvCall(const CALL_FUN precvfun) = 0;
     virtual bool CSetNewConCall(const CALL_FUN precvfun) = 0;
-    virtual void CStartLoop(bool demon = false)  = 0;
+    virtual void CStartLoop(u32 waitTime = 5, bool demon = false)  = 0;
 };
 
 inline INet * GetNetWorker(const char * dllPath, const u32 threadCount = 1, const u32 conCount = 4096, const u16 waitTime = 10) {

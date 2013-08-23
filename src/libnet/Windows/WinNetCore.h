@@ -43,11 +43,11 @@
 
 class CNet : public INet {
 public:
-    virtual bool CListen(const char * ip, const u16 port, const u16 count, const void * buff = NULL, const u32 size = 0);
+    virtual bool CListen(const char * ip, const u16 port, const u16 count);
     virtual bool CConnectEx(const char * ip, const u16 port, const void * buff, const u32 size);
     virtual bool CSendMsg(const u16 conid, const void * buff, const u16 size);
     virtual bool CClose(const u16 conid);
-    virtual void CStartLoop(bool demon);
+    virtual void CStartLoop(u32 waitTime, bool demon);
 
     virtual bool CGetRemoteInfo(const u16 conid, const char * & ip, u16 & port);
 
@@ -66,7 +66,7 @@ private:
     void CRecv(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode);
     void CSend(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode);
     void CConnect(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode);
-    bool CClose(SockData * pSockData);
+    void CClose(SockData * pSockData);
 
 private:
     static THREAD_FUN CEventLoop(LPVOID p);
@@ -84,7 +84,8 @@ private:
     HANDLE m_hCompletionPort;
     BOOL m_endIocp;
     u16 m_nIOWaitTime;
-	CQueue m_CQueue;
+    CQueue m_CQueue;
+	u32 m_nEventLooptime;
 };
 
 #endif

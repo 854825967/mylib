@@ -18,18 +18,15 @@ CNet::CNet(const u8 threadcount, const u16 linkcount, const u16 iowaittime) {
     if ((m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0)) == NULL) {
         NET_ERROR("CreateIoCompletionPort error, error code %s", GetLastError());
     }
-
-	for(u32 i=0; i<m_nNetThreadCount; i++) {
-		HANDLE hThread = ::CreateThread(NULL, 0, CNet::CLoop, (LPVOID)this, 0, NULL);
-		CloseHandle(hThread);
-	}
+    m_pLogCore = NEW LogSystem("NetDebug");
+    m_pLogCore->StartLoop(true);
 }
 
 CNet::~CNet() {
 
 }
 
-bool CNet::CListen(const char * ip, const u16 port, const u16 count) {
+bool CNet::CListen(const char * ip, const u16 port, const u16 count, const void * buff, const u32 size) {
     SockData * pSockData = m_SockDataPool.Create();
     if(NULL == pSockData) {
         NET_ERROR("Get SockData error");
@@ -97,6 +94,20 @@ bool CNet::CListen(const char * ip, const u16 port, const u16 count) {
         return false;
     }
 
+    SockPlus * pConPlus = pSockData->GetSockPlus(EVENT_CONNECT);
+    ASSERT(pConPlus);
+    if (NULL != buff) {
+        if (size <= sizeof(pConPlus->m_buff)) {
+            memcpy(pConPlus->m_buff, buff, size);
+            pConPlus->m_wBuf.len = size;
+        } else {
+            memcpy(pConPlus->m_buff, buff, sizeof(pConPlus->m_buff));
+            pConPlus->m_wBuf.len = sizeof(pConPlus->m_buff);
+        }
+    } else {
+        pConPlus->m_wBuf.len = 0;
+    }
+
     BOOL result = m_pFunAcceptEx(
         pSockData->m_sock,
         pSockPlus->m_acceptSock,
@@ -130,23 +141,20 @@ bool CNet::CConnectEx(const char * ip, const u16 port, const void * buff, const 
     SockData * pSockData = m_SockDataPool.Create();
     if (NULL == pSockData) {
         NET_ERROR("获取SockData失败");
-		m_pCntFailedFun(0, buff, size);
         CSleep(1);
         return false;
     }
 
     if (!pSockData->m_address.SetIp(ip) || !pSockData->m_address.SetIPort(port)) {
         NET_ERROR("Set Remote ip error, Remote ip %s, Remote port %d", ip, port);
-		m_SockDataPool.Recover(pSockData);
-		m_pCntFailedFun(0, buff, size);
+        m_SockDataPool.Recover(pSockData);
         CSleep(1);
         return false;
     }
     
     if (INVALID_SOCKET == (pSockData->m_sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED)) ) {
         NET_ERROR("WSASocket error, last error code : %d", GetLastError());
-		m_SockDataPool.Recover(pSockData);
-		m_pCntFailedFun(0, buff, size);
+        m_SockDataPool.Recover(pSockData);
         CSleep(1);
         return false;
     }
@@ -154,8 +162,7 @@ bool CNet::CConnectEx(const char * ip, const u16 port, const void * buff, const 
     if (SOCKET_ERROR == ::bind(pSockData->m_sock, (sockaddr *)&address, sizeof(sockaddr_in))) {
         NET_ERROR("Bind error, socket : %d, last error code : %d", pSockData->m_sock, GetLastError());
         closesocket(pSockData->m_sock);
-		m_SockDataPool.Recover(pSockData);
-		m_pCntFailedFun(0, buff, size);
+        m_SockDataPool.Recover(pSockData);
         CSleep(1);
         return false;
     }
@@ -163,8 +170,7 @@ bool CNet::CConnectEx(const char * ip, const u16 port, const void * buff, const 
     if (m_hCompletionPort != ::CreateIoCompletionPort((HANDLE)pSockData->m_sock, m_hCompletionPort, (u_long)pSockData, 0)) {
         NET_ERROR("CreateIoCompletionPort error, error code %d", GetLastError());
         closesocket(pSockData->m_sock);
-		m_SockDataPool.Recover(pSockData);
-		m_pCntFailedFun(0, buff, size);
+        m_SockDataPool.Recover(pSockData);
         CSleep(1);
         return false;
     }
@@ -192,11 +198,7 @@ bool CNet::CConnectEx(const char * ip, const u16 port, const void * buff, const 
     s32 nError = WSAGetLastError();
     if (nResult == FALSE && nError != WSA_IO_PENDING) {
         NET_ERROR("ConnectEx error,error code %d", nError);
-		SOCKET sock = pSockData->m_sock;
-		m_SockDataPool.Recover(pSockData);
-		shutdown(sock, SD_BOTH);
-		closesocket(sock);
-		m_pCntFailedFun(0, buff, size);
+        CClose(pSockData);
         CSleep(1);
         return false;
     }
@@ -232,7 +234,9 @@ bool CNet::CSendMsg(const u16 conid, const void * buff, const u16 size) {
             nResult = ::WSAGetLastError();
             if (nResult != WSA_IO_PENDING) {
                 NET_WARN("WSASend error, error code %d", nResult);
-                CClose(pSockData->GetID());
+                if (CClose(pSockData)) {
+                    m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+                }
                 CSleep(1);
                 return false;
             }
@@ -258,8 +262,7 @@ bool CNet::CClose(const u16 conid) {
 
 THREAD_FUN CNet::CEventLoop(LPVOID p) {
     ASSERT(p != NULL);
-	CNet * pThis = (CNet *)p;
-	u64 nTick = ::GetCurrentTimeTick();
+    CNet * pThis = (CNet *)p;
     while (true) {
         u32 id = 0;
         u8 type = 0;
@@ -290,30 +293,20 @@ THREAD_FUN CNet::CEventLoop(LPVOID p) {
             default:
                 break;
             }
-		}
-
-		if (pThis->m_nEventLooptime != 0) {
-			u64 nUseTick = ::GetCurrentTimeTick() - nTick;
-			if (nUseTick > pThis->m_nEventLooptime) {
-				return 0;
-			}
-		}
+        }
     }
 }
 
+void CNet::CStartLoop(bool demon) {
+    for(u32 i=0; i<m_nNetThreadCount; i++) {
+        HANDLE hThread = ::CreateThread(NULL, 0, CNet::CLoop, (LPVOID)this, 0, NULL);
+        CloseHandle(hThread);
+    }
 
-void CNet::CStartLoop(u32 waitTime, bool demon) {
-	m_nEventLooptime = waitTime;
-	static bool alreadyDemon = false;
     if (demon) {
-		alreadyDemon = true;
         HANDLE hThread = ::CreateThread(NULL, 0, CNet::CEventLoop, (LPVOID)this, 0, NULL);
         CloseHandle(hThread);
     } else {
-		if (alreadyDemon) {
-			ASSERT(false);
-			return;
-		}
         CEventLoop(this);
     }
 
@@ -413,7 +406,13 @@ void CNet::CAccept(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, 
                         m_SockDataPool.Recover(pNewConSockData);
                         CSleep(1);
                     } else {
-                        m_CQueue.AddEvent(pNewConSockData->GetID(), CEVENT_NEW_CONNECT, NULL, 0);
+                        SockPlus * pConPlus = pSockData->GetSockPlus(EVENT_CONNECT);
+                        SockPlus * pNewConPlus = pNewConSockData->GetSockPlus(EVENT_CONNECT);
+                        if (pConPlus->m_wBuf.len != 0) {
+                            memcpy(pNewConPlus->m_buff, pConPlus->m_buff, pConPlus->m_wBuf.len);
+                        }
+                        pNewConPlus->m_wBuf.len = pConPlus->m_wBuf.len;
+                        m_CQueue.AddEvent(pNewConSockData->GetID(), CEVENT_NEW_CONNECT, pConPlus->m_buff, pConPlus->m_wBuf.len);
                     }
                 }
             } else {
@@ -459,34 +458,34 @@ void CNet::CAccept(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, 
     return;
 }
 
-void CNet::CClose(SockData * pSockData) {
+bool CNet::CClose(SockData * pSockData) {
     SOCKET sock = pSockData->m_sock;
     if (m_SockDataPool.Recover(pSockData)) {
         shutdown(sock, SD_BOTH);
         closesocket(sock);
-        m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
         NET_ERROR("回收 sockdata %d, socket %d", pSockData->GetID(), sock);
+        return true;
     }
+    return false;
 }
 
 void CNet::CRecv(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode) {
-    ASSERT( (0 == nErrorCode) || (ERROR_NETNAME_DELETED == nErrorCode) || ERROR_SEM_TIMEOUT == nErrorCode || ERROR_CONNECTION_ABORTED == nErrorCode);
+    ASSERT( (0 == nErrorCode) || (ERROR_NETNAME_DELETED == nErrorCode) || (ERROR_SEM_TIMEOUT) == nErrorCode);
     switch (nErrorCode) {
     case ERROR_NETNAME_DELETED:
     case ERROR_SEM_TIMEOUT:
-	case ERROR_CONNECTION_ABORTED:
         {
-            CClose(pSockData);
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+            }
             return;
         }
     }
 
     if (0 == nSize) {
-        ASSERT(m_pCntBreakFun != NULL);
-        shutdown(pSockData->m_sock, SD_BOTH);
-        closesocket(pSockData->m_sock);
-        m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
-        m_SockDataPool.Recover(pSockData);
+        if (CClose(pSockData)) {
+            m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+        }
         return;
     }
 
@@ -499,8 +498,9 @@ void CNet::CRecv(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u3
         s32 res = ::WSAGetLastError();
         if (WSA_IO_PENDING != res) {
             NET_WARN("WSARecv error, error code %d", res);
-            ASSERT(m_pCntBreakFun != NULL);
-            CClose(pSockData->GetID());
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+            }
             CSleep(1);
             return;
         }
@@ -508,7 +508,6 @@ void CNet::CRecv(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u3
 }
 
 void CNet::CSend(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode) {
-
     ASSERT(0 == nErrorCode);
     if (0 != nSize) {
         pSockData->Out(nSize);
@@ -518,7 +517,9 @@ void CNet::CSend(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u3
         pSockPlus->m_wBuf.buf = NULL;
         pSockPlus->m_wBuf.len = 0;
         if (pSockData->m_isclose) {
-            CClose(pSockData);
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+            }
         }
         return;
     }
@@ -534,7 +535,9 @@ void CNet::CSend(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u3
         nResult = ::WSAGetLastError();
         if (nResult != WSA_IO_PENDING) {
             NET_WARN("WSASend error, error code %d", nResult);
-            CClose(pSockData);
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_BREAK, NULL, 0);
+            }
             CSleep(1);
         }
     }
@@ -542,20 +545,15 @@ void CNet::CSend(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u3
 }
 
 void CNet::CConnect(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize, u32 nErrorCode) {
-    //NET_TRACE("Connect完成事件, 错误代码 %d", nErrorCode);
     switch (nErrorCode) {
     case ERROR_INVALID_NETNAME:
     case ERROR_SEM_TIMEOUT:
     case ERROR_CONNECTION_REFUSED:
     case ERROR_HOST_UNREACHABLE:
-	case ERROR_NETWORK_UNREACHABLE:
-		{
-			m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_FAILED, pSockPlus->m_wBuf.buf, pSockPlus->m_wBuf.len);
-			if (m_SockDataPool.Recover(pSockData)) {
-				shutdown(pSockData->m_sock, SD_BOTH);
-				closesocket(pSockData->m_sock);
-				NET_ERROR("回收 sockdata %d, socket %d", pSockData->GetID(), pSockData->m_sock);
-			}
+        {
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_FAILED, NULL, 0);
+            }
             return;
         }
     }
@@ -565,8 +563,7 @@ void CNet::CConnect(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize,
         ERROR_INVALID_NETNAME == nErrorCode ||
         ERROR_SEM_TIMEOUT == nErrorCode ||
         ERROR_CONNECTION_REFUSED == nErrorCode ||
-        ERROR_HOST_UNREACHABLE == nErrorCode ||
-		ERROR_NETWORK_UNREACHABLE == nErrorCode);
+        ERROR_HOST_UNREACHABLE == nErrorCode);
 
     SockPlus * pRecSockPlus = pSockData->GetSockPlus(EVENT_RECV);
     memset(pRecSockPlus->m_buff, 0, BUFF_SIZE);
@@ -576,7 +573,9 @@ void CNet::CConnect(SockData * pSockData, SockPlus * pSockPlus, const u32 nSize,
         s32 nRes = ::WSAGetLastError();
         if (WSA_IO_PENDING != nRes) {
             NET_ERROR("WSARecv error,error code %d", nRes);
-            CClose(pSockData);
+            if (CClose(pSockData)) {
+                m_CQueue.AddEvent(pSockData->GetID(), CEVENT_CONNECT_FAILED, NULL, 0);
+            }
             CSleep(1);
             return;
         }
