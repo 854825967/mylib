@@ -17,6 +17,8 @@ inline void _AssertionFail(const char * strFile, int nLine, const char * pFunNam
 #ifdef _DEBUG
 //#define NEW ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define NEW new
+#define MALLOC malloc
+#define FREE free
 #ifndef ASSERT
 
 #ifdef __cplusplus
@@ -26,6 +28,8 @@ inline void _AssertionFail(const char * strFile, int nLine, const char * pFunNam
 #endif //ASSERT
 #else
 #define NEW new
+#define MALLOC malloc
+#define FREE free
 #define  ASSERT(p) void(0);
 #endif    //_DEBUG
 

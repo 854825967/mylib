@@ -4,8 +4,12 @@
 #define WINSYS_H
 
 #include <stdio.h>
-#include <winsock2.h>
-#include <Windows.h> 
+#ifndef _WINSOCK2API_  
+#include <WinSock2.h>  
+#endif  
+#ifndef _WINDOWS_  
+#include <Windows.h>  
+#endif  
 #include <shlwapi.h>
 #include <Mswsock.h>
 #include <time.h>

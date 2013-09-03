@@ -1,91 +1,102 @@
 #include <string>
 #include "CStream.h"
 
-CStream::CStream()
-{
-    memset(m_szBuff, 0, sizeof(m_szBuff));
-    m_nReadCurrent = 0;
-    m_nWriteCurrent = 0;
-    m_nMaxLength = STREAM_LENGTH;
+CStream::CStream() {
+    m_pbuff = NEW char[STREAM_SIZE];
+    memset(m_pbuff, 0, STREAM_SIZE);
+    m_read = 0;
+    m_write = 0;
+    m_max = STREAM_SIZE;
 }
 
-CStream::~CStream()
-{
-
-}
-
-const char * CStream::GetBuff() const{
-    return (char *)&m_szBuff[m_nReadCurrent];
-}
-
-s32 CStream::GetLength() const{
-    return m_nWriteCurrent - m_nReadCurrent;
-}
-
-bool CStream::In(const void * pBuff, s32 nLength) 
-{
-    if (NULL == pBuff ||
-        nLength <= 0 )
-    {
-        ASSERT(false);
-        return false;
+CStream::~CStream() {
+    if (m_pbuff != NULL) {
+        delete m_pbuff;
+        m_pbuff = NULL;
     }
-
-    if (nLength > m_nMaxLength)
-    {
-        //这里要打出日志 提示 消息过长
-        ASSERT(false);
-        return false;
-    }
-
-    if (nLength > m_nReadCurrent + m_nMaxLength - m_nWriteCurrent)
-    {
-        //提示缓冲区不足
-        ASSERT(false);
-        return false;
-    }
-
-    if (nLength > m_nMaxLength - m_nWriteCurrent)
-    {
-        if (m_nWriteCurrent != m_nReadCurrent) {
-            memcpy(&m_szBuff[m_nWriteCurrent], m_szBuff + m_nReadCurrent, m_nWriteCurrent - m_nReadCurrent);
+}
+void CStream::clear() {
+    m_read = 0;
+    m_write = 0;
+    if (m_max > STREAM_SIZE) {
+        if (m_pbuff != NULL) {
+            delete m_pbuff;
+            m_pbuff = NULL;
         }
-        m_nWriteCurrent = m_nWriteCurrent - m_nReadCurrent;
-        m_nReadCurrent = 0;
+        m_pbuff = NEW char[STREAM_SIZE];
+        m_max = STREAM_SIZE;
     }
-
-    memcpy(&m_szBuff[m_nWriteCurrent], pBuff, nLength);
-
-    m_nWriteCurrent += nLength;
-
-    return true;
+    memset(m_pbuff, 0, STREAM_SIZE);
 }
 
-const char * CStream::Out(s32 & nLength)
-{
-    u32 nPosition = m_nReadCurrent;
-    if (m_nWriteCurrent - m_nReadCurrent < nLength)
-    {
-        if (STREAM_IS_EMPTY == (m_nWriteCurrent - m_nReadCurrent))
-        {
-            m_nReadCurrent = 0;
-            m_nWriteCurrent = 0;
-            return NULL;
+const char * CStream::buff() const {
+    return &m_pbuff[m_read];
+}
+
+s32 CStream::size() const {
+    return m_write - m_read;
+}
+
+void CStream::malloc_double() {
+    CAutoLock rlock(&m_rlock);
+    s32 cursize = m_write - m_read;
+    m_max *= 2;
+    char * ptemp = m_pbuff;
+    m_pbuff = NEW char[m_max];
+    memcpy(m_pbuff, &ptemp[m_read], cursize);
+    delete ptemp;
+    m_write = cursize;
+    m_read = 0;
+}
+
+void CStream::half_free() {
+    if (m_max > STREAM_SIZE) {
+        s32 cursize = m_write - m_read;
+        if (m_max > 4 * cursize) {
+            CAutoLock wlock(&m_wlock);
+            CAutoLock rlock(&m_rlock);
+            m_max /= 2;
+            char * ptemp = m_pbuff;
+            m_pbuff = NEW char[m_max];    
+            memcpy(m_pbuff, &ptemp[m_read], cursize);
+            delete ptemp;
+            m_write = cursize;
+            m_read = 0;
         }
-        
-        nLength = m_nWriteCurrent - m_nReadCurrent;
-        nPosition = m_nReadCurrent;
-        m_nReadCurrent = 0;
-        m_nWriteCurrent = 0;
+    }
+}
+
+void CStream::in(const void * pbuff, s32 size) {
+    CAutoLock wlock(&m_wlock);
+    if (size > m_max - m_write) {
+        s32 cursize = m_write - m_read;
+        if (m_max - cursize < size) {
+            while (m_max - cursize < size) {
+                malloc_double();
+            }
+        } else {
+            CAutoLock rlock(&m_rlock);
+            memcpy(m_pbuff, &m_pbuff[m_read], cursize);
+            m_write = cursize;
+            m_read = 0;
+        }
+    }
+
+    memcpy(&m_pbuff[m_write], pbuff, size);
+    m_write += size;
+    wlock.Free();
+
+    half_free();
+}
+
+void CStream::out(s32 size) {
+    CAutoLock rlock(&m_rlock);
+    if (size > m_write - m_read) {
+        ASSERT(false);
+        m_read = m_write;
     } else {
-        m_nReadCurrent += nLength;
+        m_read += size;
     }
-
-    return (char *)&m_szBuff[nPosition];// + nPosition;
-}
-
-void CStream::Clear()
-{
-    m_nReadCurrent = 0;
-    m_nWriteCurrent = 0;
+    rlock.Free();
+    half_free();
 }

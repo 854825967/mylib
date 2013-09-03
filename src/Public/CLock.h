@@ -12,6 +12,11 @@ public:
         m_pLock->Lock();
     }
 
+    void Free() {
+        ASSERT(m_pLock != NULL);
+        m_pLock->UnLock();
+    }
+
     ~CAutoLock() {
         m_pLock->UnLock();
     }

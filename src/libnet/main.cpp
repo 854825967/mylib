@@ -1,5 +1,5 @@
 #include "MultiSys.h"
-#include "WinNetCore.h"
+#include "CNet.h"
 #include "LinuxNetCore.h"
 #include "MacNetCore.h"
 

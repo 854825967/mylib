@@ -184,5 +184,11 @@ inline string UTF8ToGBK(const char * pStrUtf8) {
 		return temp;
 }
 
+extern "C" {
+//     const char * GetIPByHost(const char * pStrHost) {
+//         return NULL;
+//     }
+};
+
 #endif //WINTOOLS_H
 #endif //#if defined WIN32 || defined WIN64

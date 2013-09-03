@@ -4,24 +4,30 @@
 #include "MultiSys.h"
 #include "CLock.h"
 
-#define STREAM_LENGTH 10240
-#define STREAM_IS_EMPTY 0
+#define STREAM_SIZE 10240
 
 class CStream
 {
 public:
     CStream();
     ~CStream();
-    void Clear();
-    const char * GetBuff() const;
-    s32 GetLength() const;
-    bool In(const void * pBuff, s32 nLength);
-    const char * Out(s32 & nLength);
+    void clear();
+    const char * buff() const;
+    s32 size() const;
+    void in(const void * pbuff, s32 size);
+    void out(s32 size);
+
 private:
-    char * m_szBuff[STREAM_LENGTH];
-    s32 m_nReadCurrent;
-    s32 m_nWriteCurrent;
-    s32 m_nMaxLength;
+    void malloc_double();
+    void half_free();
+
+private:
+    CLockUnit m_rlock;
+    CLockUnit m_wlock;
+    char * m_pbuff;
+    s32 m_read;
+    s32 m_write;
+    s32 m_max;
 };
 
 #endif
