@@ -1,9 +1,10 @@
-/* 
+/*
  * File:   LogSystem.h
  * Author: traveler
  *
  * Created on January 5, 2013, 11:03 AM
  */
+#if defined WIN32 || defined WIN64
 
 #ifndef LOGSYSTEM_H
 #define LOGSYSTEM_H
@@ -17,7 +18,6 @@
 using namespace std;
 
 typedef CHashMap<ThreadID, ILogQueue * > LOGQUEUE_MAP;
-
 
 class LogSystem : public ILog {
 public:
@@ -53,3 +53,5 @@ private:
 };
 
 #endif	/* LOGSYSTEM_H */
+
+#endif //#if defined WIN32 || defined WIN64

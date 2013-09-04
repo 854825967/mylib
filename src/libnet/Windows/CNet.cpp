@@ -1,3 +1,5 @@
+#if defined WIN32 || defined WIN64
+
 #include "CNet.h"
 #include "Tools.h"
 #include "iocp.h"
@@ -110,7 +112,7 @@ void CNet::DealConnectEvent(struct iocp_event * pEvent) {
         if (ERROR_SUCCESS == pEvent->nerron) {
             s32 nConnectID = m_ConnectPool.CreateID();
             m_ConnectPool[nConnectID]->s = pEvent->s;
-            SafeSprintf(m_ConnectPool[nConnectID]->szIP, sizeof(m_ConnectPool[nConnectID]->szIP), 
+            SafeSprintf(m_ConnectPool[nConnectID]->szIP, sizeof(m_ConnectPool[nConnectID]->szIP),
                 "%s", inet_ntoa(pEvent->remote.sin_addr));
             m_ConnectPool[nConnectID]->nPort = ntohs(pEvent->remote.sin_port);
 
@@ -141,12 +143,12 @@ void CNet::DealAcceptEvent(struct iocp_event * pEvent) {
             s32 nConnectID = m_ConnectPool.CreateID();
 
             m_ConnectPool[nConnectID]->s = pEvent->s;
-            SafeSprintf(m_ConnectPool[nConnectID]->szIP, sizeof(m_ConnectPool[nConnectID]->szIP), 
+            SafeSprintf(m_ConnectPool[nConnectID]->szIP, sizeof(m_ConnectPool[nConnectID]->szIP),
                 "%s", inet_ntoa(pEvent->remote.sin_addr));
             m_ConnectPool[nConnectID]->nPort = ntohs(pEvent->remote.sin_port);
 
             m_szCallAddress[CALL_REMOTE_CONNECTED](nConnectID, pEvent->p, 0);
-            
+
             pEvent->event = EVENT_ASYNC_RECV;
             pEvent->wbuf.buf = pEvent->buff;
             pEvent->wbuf.len = sizeof(pEvent->buff);
@@ -276,4 +278,4 @@ void CNet::CSetCallBackAddress(const CALLBACK_TYPE eType, const CALL_FUN address
     }
 }
 
-
+#endif //#if defined WIN32 || defined WIN64

@@ -1,3 +1,5 @@
+#if defined WIN32 || defined WIN64
+
 #include "iocp.h"
 #ifdef __cplusplus
 extern "C" {
@@ -24,8 +26,8 @@ extern "C" {
         DWORD dwBytes = 0;
         SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         LPFN_ACCEPTEX pAcceptFun = NULL;
-        WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx, 
-            sizeof(GuidAcceptEx), &pAcceptFun, sizeof(pAcceptFun), 
+        WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx,
+            sizeof(GuidAcceptEx), &pAcceptFun, sizeof(pAcceptFun),
             &dwBytes, NULL, NULL);
 
         if (NULL == pAcceptFun) {
@@ -41,8 +43,8 @@ extern "C" {
         DWORD dwBytes = 0;
         SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         LPFN_CONNECTEX pConnectFun = NULL;
-        WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx, 
-            sizeof(GuidConnectEx), &pConnectFun, sizeof(pConnectFun), 
+        WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx,
+            sizeof(GuidConnectEx), &pConnectFun, sizeof(pConnectFun),
             &dwBytes, NULL, NULL);
 
         if (NULL == pConnectFun) {
@@ -91,7 +93,7 @@ extern "C" {
         if (SOCKET_ERROR == bind(s, (struct sockaddr *)&addr, sizeof(struct sockaddr_in))) {
             RETURN_RES(ERROR_CONNECTEX_BIND);
         }
-        
+
         if (SOCKET_ERROR == ioctlsocket(s, FIONBIO, &dwValue)) {
             closesocket(s);
             RETURN_RES(ERROR_SET_FIONBIO);
@@ -113,12 +115,12 @@ extern "C" {
         pEvent->remote.sin_port = htons(nPort);
 
         res = s_pFunConnectEx(
-            s, 
-            (struct sockaddr *)&pEvent->remote, 
-            sizeof(struct sockaddr_in), 
-            NULL, 
-            0, 
-            &pEvent->dwBytes, 
+            s,
+            (struct sockaddr *)&pEvent->remote,
+            sizeof(struct sockaddr_in),
+            NULL,
+            0,
+            &pEvent->dwBytes,
             (LPOVERLAPPED)pEvent
         );
 
@@ -165,7 +167,7 @@ extern "C" {
         }
         if (listen(s, backlog) == SOCKET_ERROR) {
             RETURN_RES(ERROR_LISTEN);
-        } 
+        }
 
         if (s_hCompletionPort != (CreateIoCompletionPort((HANDLE)s, (HANDLE)s_hCompletionPort, (u_long)s, 0))) {
             RETURN_RES(ERROR_RELATE_IO_COMPLETIONPORT);
@@ -190,7 +192,7 @@ extern "C" {
             0,
             sizeof(struct sockaddr_in) + 16,
             sizeof(struct sockaddr_in) + 16,
-            &pEvent->dwBytes, 
+            &pEvent->dwBytes,
             (LPOVERLAPPED)pEvent
             );
 
@@ -216,7 +218,7 @@ extern "C" {
         pEvent->s = s;
         pEvent->p = pData;
         pEvent->event = EVENT_ASYNC_RECV;
-        
+
         if (SOCKET_ERROR == WSARecv(pEvent->s, &pEvent->wbuf, 1, &pEvent->dwBytes, &pEvent->dwFlags, (LPWSAOVERLAPPED)pEvent, NULL)) {
             *pnError = GetLastError();
             if (ERROR_IO_PENDING == *pnError) {
@@ -350,3 +352,5 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif //__cplusplus
+
+#endif //#if defined WIN32 || defined WIN64

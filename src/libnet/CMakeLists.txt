@@ -1,17 +1,43 @@
-#cmake file for project association                     #表示注释 
+#cmake file for project association                     #表示注释
 #author:大T
 #created:2013/4/9
 
 #相关头文件的目录
-INCLUDE_DIRECTORIES(
-    "../Public"
-    "./Interface"
-    "./Subunit"
-    "./Windows"
-    "./Linux"
-    "./MacOS"
-	"../liblog/Interface"
-)
+IF(UNIX)
+    INCLUDE_DIRECTORIES(
+        "../Public"
+        "./Interface"
+        "./Subunit"
+        "./Linux"
+    )
+ENDIF(UNIX)
+
+IF(WIN32)
+    INCLUDE_DIRECTORIES(
+        "../Public"
+        "./Interface"
+        "./Subunit"
+        "./Windows"
+    )
+ENDIF(WIN32)
+
+IF(WIN64)
+    INCLUDE_DIRECTORIES(
+        "../Public"
+        "./Interface"
+        "./Subunit"
+        "./Windows"
+    )
+ENDIF(WIN64)
+
+IF(APPLE)
+    INCLUDE_DIRECTORIES(
+        "../Public"
+        "./Interface"
+        "./Subunit"
+        "./MacOS"
+    )
+ENDIF(APPLE)
 
 #设置变量，表示所有的源文件
 SET(SOURCE_FILES
@@ -31,8 +57,14 @@ SET(WINDOWS_NET_FILES
 )
 
 SET(LINUX_NET_FILES
-    "./Linux/LinuxNetCore.cpp"
-    "./Linux/LinuxNetCore.h"
+    "./Linux/CConnection.h"
+    "./Linux/CNet.cpp"
+    "./Linux/CNet.h"
+    "./Linux/CQueue.h"
+    "./Linux/epoll.h"
+    "./Linux/epoll.c"
+    "./Linux/epoll_event.h"
+    "./Linux/epoll_event.c"
 )
 
 SET(MAC_OS_NET_FILES
@@ -66,15 +98,46 @@ MESSAGE(STATUS "Public : ${PUBLIC_FILES}")
 
 #设置输出路径,并且生成动态库
 SET(LIBRARY_OUTPUT_PATH "${OUTPUT_PATH}/libnet")
-ADD_LIBRARY("libnet" SHARED 
-    ${SOURCE_FILES} 
+
+IF(UNIX)
+ADD_LIBRARY("net" SHARED
+    ${SOURCE_FILES}
+    ${LINUX_NET_FILES}
+    ${PUBLIC_FILES}
+    ${SUBUNIT_FILES}
+    ${LIBNET_INTERFACE_FILES}
+)
+ENDIF(UNIX)
+
+IF(WIN32)
+ADD_LIBRARY("libnet" SHARED
+    ${SOURCE_FILES}
     ${WINDOWS_NET_FILES}
-    ${LINUX_NET_FILES} 
+    ${PUBLIC_FILES}
+    ${SUBUNIT_FILES}
+    ${LIBNET_INTERFACE_FILES}
+)
+ENDIF(WIN32)
+
+IF(WIN64)
+ADD_LIBRARY("libnet" SHARED
+    ${SOURCE_FILES}
+    ${WINDOWS_NET_FILES}
+    ${PUBLIC_FILES}
+    ${SUBUNIT_FILES}
+    ${LIBNET_INTERFACE_FILES}
+)
+ENDIF(WIN64)
+
+IF(APPLE)
+ADD_LIBRARY("libnet" SHARED
+    ${SOURCE_FILES}
     ${MAC_OS_NET_FILES}
     ${PUBLIC_FILES}
     ${SUBUNIT_FILES}
     ${LIBNET_INTERFACE_FILES}
 )
+ENDIF(APPLE)
 
 #依赖的库文件
 #TARGET_LINK_LIBRARY(association core)

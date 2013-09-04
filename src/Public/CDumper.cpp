@@ -6,6 +6,19 @@
 using namespace std;
 #pragma comment(lib, "dbghelp.lib")
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+void _AssertionFail(const char * strFile, int nLine, const char * pFunName) {
+    //CSleep(1);
+    fflush(stdout);
+    fprintf(stderr, "\nAsssertion failed: file %s, line %d, function %s ", strFile, nLine, pFunName);
+    fflush(stderr);
+    abort();
+}
+#ifdef __cplusplus
+};
+#endif //__cplusplus
 TCHAR    m_acDumpName[MAX_PATH*2] = { _T("\0") };
 
 #define snArraySize( x )    sizeof(x) / sizeof(x[0])
@@ -48,7 +61,7 @@ static string WideStrToString( const wchar_t* pwText, UINT code  )
     }
 }
 
-bool IsDataSectionNeeded( const wchar_t* pModuleName ) 
+bool IsDataSectionNeeded( const wchar_t* pModuleName )
 {
     if( NULL == pModuleName ) {
         return false;
@@ -82,53 +95,53 @@ LONG __stdcall CDumper::snUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptio
 {
     CDumper::CreateMiniDump( pExceptionInfo );
 
-    exit( pExceptionInfo->ExceptionRecord->ExceptionCode  ); 
+    exit( pExceptionInfo->ExceptionRecord->ExceptionCode  );
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-BOOL CALLBACK CDumper::MiniDumpCallback(    PVOID                            pParam, 
-                                      const PMINIDUMP_CALLBACK_INPUT   pInput, 
-                                      PMINIDUMP_CALLBACK_OUTPUT        pOutput 
-                                      ) 
+BOOL CALLBACK CDumper::MiniDumpCallback(    PVOID                            pParam,
+                                      const PMINIDUMP_CALLBACK_INPUT   pInput,
+                                      PMINIDUMP_CALLBACK_OUTPUT        pOutput
+                                      )
 {
-    if( pInput == 0 || pOutput == 0) return FALSE; 
-    switch( pInput->CallbackType ) 
+    if( pInput == 0 || pOutput == 0) return FALSE;
+    switch( pInput->CallbackType )
     {
-    case ModuleCallback: 
-        if( pOutput->ModuleWriteFlags & ModuleWriteDataSeg ) 
-            if( !IsDataSectionNeeded( pInput->Module.FullPath ) ) 
-                pOutput->ModuleWriteFlags &= (~ModuleWriteDataSeg); 
+    case ModuleCallback:
+        if( pOutput->ModuleWriteFlags & ModuleWriteDataSeg )
+            if( !IsDataSectionNeeded( pInput->Module.FullPath ) )
+                pOutput->ModuleWriteFlags &= (~ModuleWriteDataSeg);
         // fall through
-    case IncludeModuleCallback: 
-    case IncludeThreadCallback: 
-    case ThreadCallback: 
-    case ThreadExCallback: 
-        return TRUE; 
+    case IncludeModuleCallback:
+    case IncludeThreadCallback:
+    case ThreadCallback:
+    case ThreadExCallback:
+        return TRUE;
     default:;
     }
-    return FALSE; 
+    return FALSE;
 }
 
-void CDumper::CreateMiniDump( EXCEPTION_POINTERS* pep ) 
+void CDumper::CreateMiniDump( EXCEPTION_POINTERS* pep )
 {
     HANDLE hFile = CreateFile( m_acDumpName,
-        GENERIC_READ | GENERIC_WRITE, 
+        GENERIC_READ | GENERIC_WRITE,
         0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
 
-    if( ( hFile != NULL ) && ( hFile != INVALID_HANDLE_VALUE ) ) 
+    if( ( hFile != NULL ) && ( hFile != INVALID_HANDLE_VALUE ) )
     {
-        MINIDUMP_EXCEPTION_INFORMATION mdei; 
-        mdei.ThreadId           = GetCurrentThreadId(); 
-        mdei.ExceptionPointers  = pep; 
-        mdei.ClientPointers     = FALSE; 
-        MINIDUMP_CALLBACK_INFORMATION mci; 
+        MINIDUMP_EXCEPTION_INFORMATION mdei;
+        mdei.ThreadId           = GetCurrentThreadId();
+        mdei.ExceptionPointers  = pep;
+        mdei.ClientPointers     = FALSE;
+        MINIDUMP_CALLBACK_INFORMATION mci;
         mci.CallbackRoutine     = (MINIDUMP_CALLBACK_ROUTINE)(CDumper::MiniDumpCallback);
         mci.CallbackParam       = 0;
 
         MINIDUMP_TYPE mdt = MiniDumpNormal;
 
-        BOOL bOK = MiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(), 
+        BOOL bOK = MiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(),
             hFile, mdt, (pep != 0) ? &mdei : 0, 0, &mci );
 
         CloseHandle( hFile );
@@ -143,7 +156,7 @@ CDumper::CDumper(void)
     TCHAR* pszDot = snFindLastOfChar( m_acDumpName, _T(".") );
     if ( pszDot )
     {
-        if ( _tcslen(pszDot) >= 3 ) 
+        if ( _tcslen(pszDot) >= 3 )
         {
             bModified = true;
             _tcscpy_s( pszDot, sizeof(_T("dmp"))/sizeof(TCHAR) +1, _T("dmp") );

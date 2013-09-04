@@ -1,3 +1,5 @@
+#if defined WIN32 || defined WIN64
+
 #include "LogSystem.h"
 #include "Tools.h"
 
@@ -196,3 +198,5 @@ void LogSystem::WriteLog(Log & log) {
 
 
 }
+
+#endif //#if defined WIN32 || defined WIN64

@@ -41,12 +41,13 @@ void Recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
 }
 
 int main() {
+#if defined WIN32 || defined WIN64
     WSAData wsd;
     if (WSAStartup(MAKEWORD(2, 2), &wsd)) {
         ECHO_ERROR("init net error");
         return 0;
     }
-
+#endif //#if defined WIN32 || defined WIN64
     char szPath[512] = {0};
     SafeSprintf(szPath, sizeof(szPath), "%s/libnet.dll", ::GetAppPath());
 
@@ -63,5 +64,5 @@ int main() {
     g_pNet->CConnectEx("127.0.0.1", 10038, "127.0.0.1");
     g_pNet->CLoop(false, 0);
 
-    return 0;    
+    return 0;
 }

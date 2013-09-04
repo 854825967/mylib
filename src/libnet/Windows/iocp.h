@@ -1,12 +1,15 @@
-/** 
- * @file    iocp.h 
+/**
+ * @file    iocp.h
  * @brief   这是一个IOCP机制的封装
  * @author  大T
- * @version 1.0 
- * @date    2013.8.31 
- * @bug     还未测试 
- * @warning 还未测试 
+ * @version 1.0
+ * @date    2013.8.31
+ * @bug     还未测试
+ * @warning 还未测试
  */
+
+ #if defined WIN32 || defined WIN64
+
 #ifndef IOCP_H
 #define IOCP_H
 
@@ -15,7 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-    
+
     /** 错误码 */
     enum _code {
         ERROR_UNKNOWN,
@@ -62,7 +65,7 @@ extern "C" {
     error_code async_send(struct iocp_event * pEvent, OUT s32 * pnError, void * pData);
 
     /** 设置单词io loop的时间, 毫秒为单位 */
-    void set_waittime(s64 lMilliseconds); 
+    void set_waittime(s64 lMilliseconds);
 
     /** 安全终止 socket io */
     void safe_shutdown(struct iocp_event * pEvent);
@@ -78,3 +81,5 @@ extern "C" {
 #endif //__cplusplus
 
 #endif //IOCP_H
+
+#endif //#if defined WIN32 || defined WIN64

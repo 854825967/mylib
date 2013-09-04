@@ -57,7 +57,7 @@ void CStream::half_free() {
             CAutoLock rlock(&m_rlock);
             m_max /= 2;
             char * ptemp = m_pbuff;
-            m_pbuff = NEW char[m_max];    
+            m_pbuff = NEW char[m_max];
             memcpy(m_pbuff, &ptemp[m_read], cursize);
             delete ptemp;
             m_write = cursize;

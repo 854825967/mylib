@@ -1,19 +1,19 @@
 /**
- * @file    iocp_event.c
- * @brief   这是一个IOCP通知事件体的封装
- * @author  大T
+ * @file    epoll_event.c
+ * @brief   杩欐槸涓�涓猠poll閫氱煡浜嬩欢浣撶殑灏佽
+ * @author  澶
  * @version 1.0
  * @date    2013.8.31
- * @bug     还未测试
- * @warning 还未测试
+ * @bug     杩樻湭娴嬭瘯
+ * @warning 杩樻湭娴嬭瘯
  */
 
-#if defined WIN32 || defined WIN64
+#ifdef linux
 
-#include "iocp_event.h"
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+#include "epoll_event.h"
 
     typedef enum _bool {
         false = 0,
@@ -21,9 +21,9 @@ extern "C" {
     }bool;
 
 #ifdef THREAD_SAFE
-    static RTL_CRITICAL_SECTION s_critical;
+    static pthread_mutex_t s_mutex;
 #endif //THREAD_SAFE
-    static struct iocp_event s_szEvent[MACRO_EVENT_POOL_SIZE];
+    static struct epoll_event s_szEvent[MACRO_EVENT_POOL_SIZE];
     static s16 s_szPos[MACRO_EVENT_POOL_SIZE];
     static s16 s_index = 0;
 
@@ -40,21 +40,21 @@ extern "C" {
         }
 
 #ifdef THREAD_SAFE
-        InitializeCriticalSection(&s_critical);
+        pthread_mutex_init(&s_mutex, NULL);// = PTHREAD_MUTEX_INITIALIZER;
 #endif //THREAD_SAFE
         s_init = 1;
     }
 
 
-    struct iocp_event * malloc_event() {
-        struct iocp_event * pEvent = NULL;
+    struct epoll_event * malloc_event() {
+        struct epoll_event * pEvent = NULL;
 #ifdef THREAD_SAFE
-        EnterCriticalSection(&s_critical);
+        pthread_mutex_lock(&s_mutex);
 #endif //THREAD_SAFE
         if (s_index >= MACRO_EVENT_POOL_SIZE || -1 == s_szPos[s_index]) {
-            ASSERT(false);
+            assert(false);
 #ifdef THREAD_SAFE
-            LeaveCriticalSection(&s_critical);
+            pthread_mutex_unlock(&s_mutex);
 #endif //THREAD_SAFE
             return NULL;
         }
@@ -62,29 +62,29 @@ extern "C" {
         pEvent = &s_szEvent[s_szPos[s_index]];
         s_szPos[s_index++] = -1;
 #ifdef THREAD_SAFE
-        LeaveCriticalSection(&s_critical);
+        pthread_mutex_unlock(&s_mutex);
 #endif //THREAD_SAFE
-        memset(pEvent, 0, sizeof(struct iocp_event));
+        memset(pEvent, 0, sizeof(struct epoll_event));
         return pEvent;
     }
 
 
-    void free_event(struct iocp_event * pEvent) {
+    void free_event(struct epoll_event * pEvent) {
         s16 pos = 0;
         if ( (char *)pEvent < (char *)s_szEvent
             || (char *)pEvent > (char *)(s_szEvent + MACRO_EVENT_POOL_SIZE - 1)
-            || 0 != ((char *)pEvent - (char *)s_szEvent)%sizeof(struct iocp_event) ) {
-                ASSERT(false);
+            || 0 != ((char *)pEvent - (char *)s_szEvent)%sizeof(struct epoll_event) ) {
+                assert(false);
                 return;
         }
 #ifdef THREAD_SAFE
-        EnterCriticalSection(&s_critical);
+        pthread_mutex_lock(&s_mutex);
 #endif //THREAD_SAFE
-        pos = ((char *)pEvent - (char *)s_szEvent)/sizeof(struct iocp_event);
+        pos = ((char *)pEvent - (char *)s_szEvent)/sizeof(struct epoll_event);
         if (s_szPos[--s_index] != -1) {
-            ASSERT(false);
+            assert(false);
 #ifdef THREAD_SAFE
-            LeaveCriticalSection(&s_critical);
+            pthread_mutex_unlock(&s_mutex);
 #endif //THREAD_SAFE
             return;
         }
@@ -103,7 +103,7 @@ extern "C" {
 
         s_szPos[s_index] = pos;
 #ifdef THREAD_SAFE
-        LeaveCriticalSection(&s_critical);
+        pthread_mutex_unlock(&s_mutex);
 #endif //THREAD_SAFE
         return;
     }
