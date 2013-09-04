@@ -23,6 +23,8 @@ inline void _AssertionFail(const char * strFile, int nLine, const char * pFunNam
 
 #ifdef __cplusplus
 #define  ASSERT(p) ((p) ? (void)0 : (void)_AssertionFail(__FILE__, __LINE__, __FUNCTION__))
+#else
+#define ASSERT(p) assert(p)
 #endif //__cplusplus
 
 #endif //ASSERT

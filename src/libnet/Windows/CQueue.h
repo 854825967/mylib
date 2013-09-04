@@ -44,4 +44,5 @@ private:
     u32 m_nRIndex;
     u32 m_nWIndex;
 };
+
 #endif //CQUEUE_H

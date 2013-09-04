@@ -1,7 +1,15 @@
 #include "iocp.h"
+#ifdef __cplusplus
 extern "C" {
+#endif //__cplusplus
+
+    typedef enum _bool {
+        false = 0,
+        true = !false,
+    }bool;
+
 #define RETURN_RES(code) {\
-    *pnError = ::GetLastError(); \
+    *pnError = GetLastError(); \
     return code;}
 
     static LPFN_ACCEPTEX s_pFunAcceptEx = NULL;
@@ -21,7 +29,7 @@ extern "C" {
             &dwBytes, NULL, NULL);
 
         if (NULL == pAcceptFun) {
-            ECHO_ERROR("Get AcceptEx fun error, error code : %d", ::WSAGetLastError());
+            ECHO_ERROR("Get AcceptEx fun error, error code : %d", WSAGetLastError());
             ASSERT(false);
         }
 
@@ -38,7 +46,7 @@ extern "C" {
             &dwBytes, NULL, NULL);
 
         if (NULL == pConnectFun) {
-            ECHO_ERROR("Get ConnectEx fun error, error code : %d", ::WSAGetLastError());
+            ECHO_ERROR("Get ConnectEx fun error, error code : %d", WSAGetLastError());
             ASSERT(false);
         }
 
@@ -63,35 +71,38 @@ extern "C" {
         RETURN_RES(ERROR_NO_ERROR);
     }
 
-    error_code async_connect(const char * pStrIP, s32 nPort, OUT s32 * pnError, void * pData) {;
+    error_code async_connect(const char * pStrIP, s32 nPort, OUT s32 * pnError, void * pData) {
+        s32 s = INVALID_SOCKET;
+        struct sockaddr_in addr;
+        DWORD dwValue = 0;
+        struct iocp_event * pEvent = NULL;
+        s32 res, err;
         SetLastError(0);
         if (!s_bInit) {
             RETURN_RES(ERROR_INIT_IOCP);
         }
-        SOCKET s = INVALID_SOCKET;
+
         if (INVALID_SOCKET == (s = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED)) ) {
             RETURN_RES(ERROR_WSASOCKET_ERROR);
         }
 
-        struct sockaddr_in addr;
         memset(&addr, 0, sizeof(addr));
         addr.sin_family = AF_INET;
-        if (SOCKET_ERROR == ::bind(s, (sockaddr *)&addr, sizeof(sockaddr_in))) {
+        if (SOCKET_ERROR == bind(s, (struct sockaddr *)&addr, sizeof(struct sockaddr_in))) {
             RETURN_RES(ERROR_CONNECTEX_BIND);
         }
         
-        DWORD dwValue = 0;
         if (SOCKET_ERROR == ioctlsocket(s, FIONBIO, &dwValue)) {
             closesocket(s);
             RETURN_RES(ERROR_SET_FIONBIO);
         }
 
-        if (s_hCompletionPort != ::CreateIoCompletionPort((HANDLE)s, s_hCompletionPort, (u_long)s, 0)) {
+        if (s_hCompletionPort != CreateIoCompletionPort((HANDLE)s, s_hCompletionPort, (u_long)s, 0)) {
             closesocket(s);
             RETURN_RES(ERROR_RELATE_IO_COMPLETIONPORT);
         }
 
-        struct iocp_event * pEvent = malloc_event();
+        pEvent = malloc_event();
         pEvent->s = s;
         pEvent->p = pData;
         pEvent->event = EVENT_ASYNC_CONNECT;
@@ -101,7 +112,7 @@ extern "C" {
         }
         pEvent->remote.sin_port = htons(nPort);
 
-        s32 res = s_pFunConnectEx(
+        res = s_pFunConnectEx(
             s, 
             (struct sockaddr *)&pEvent->remote, 
             sizeof(struct sockaddr_in), 
@@ -111,7 +122,7 @@ extern "C" {
             (LPOVERLAPPED)pEvent
         );
 
-        s32 err = WSAGetLastError();
+        err = WSAGetLastError();
         if (res == FALSE && err != WSA_IO_PENDING) {
             closesocket(s);
             free_event(pEvent);
@@ -122,34 +133,37 @@ extern "C" {
     }
 
     error_code async_listen(const char * pStrIP, s32 nPort, OUT s32 * pnError, void * pData, s32 backlog) {
+        SOCKET s = INVALID_SOCKET;
+        int len = BUFF_SIZE;
+        struct sockaddr_in addr;
+        struct iocp_event * pEvent = NULL;
+        s32 res, err;
+
         SetLastError(0);
         if (!s_bInit) {
             RETURN_RES(ERROR_INIT_IOCP);
         }
 
-        SOCKET s = INVALID_SOCKET;
-        if (INVALID_SOCKET == (s = ::WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED))) {
+        if (INVALID_SOCKET == (s = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED))) {
             RETURN_RES(ERROR_WSASOCKET_ERROR);
         }
 
-        int len = BUFF_SIZE;
-        if (SOCKET_ERROR == ::setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&len, sizeof(int))
-            || SOCKET_ERROR == ::setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&len, sizeof(int))) {
+        if (SOCKET_ERROR == setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&len, sizeof(int))
+            || SOCKET_ERROR == setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&len, sizeof(int))) {
                 closesocket(s);
                 RETURN_RES(ERROR_SET_SOCKET_OPT);
         }
 
-        struct sockaddr_in addr;
         memset(&addr, 0, sizeof(addr));
         addr.sin_family = AF_INET;
         if(INADDR_NONE == (addr.sin_addr.s_addr = inet_addr(pStrIP))) {
             RETURN_RES(ERROR_IP_FORMAT);
         }
         addr.sin_port = htons(nPort);
-        if (SOCKET_ERROR == ::bind(s, (sockaddr*)&(addr), sizeof(sockaddr_in))) {
+        if (SOCKET_ERROR == bind(s, (struct sockaddr*)&(addr), sizeof(struct sockaddr_in))) {
             RETURN_RES(ERROR_LISTEN_BIND);
         }
-        if (::listen(s, backlog) == SOCKET_ERROR) {
+        if (listen(s, backlog) == SOCKET_ERROR) {
             RETURN_RES(ERROR_LISTEN);
         } 
 
@@ -157,7 +171,7 @@ extern "C" {
             RETURN_RES(ERROR_RELATE_IO_COMPLETIONPORT);
         }
 
-        struct iocp_event * pEvent = malloc_event();
+        pEvent = malloc_event();
         if (NULL == pEvent) {
             ASSERT(false);
             RETURN_RES(ERROR_MALLOC_EVENT);
@@ -169,18 +183,18 @@ extern "C" {
             RETURN_RES(ERROR_WSASOCKET_ERROR);
         }
 
-        BOOL res = s_pFunAcceptEx(
+        res = s_pFunAcceptEx(
             s,
             pEvent->s,
             pEvent->buff,
             0,
-            sizeof(sockaddr_in) + 16,
-            sizeof(sockaddr_in) + 16,
+            sizeof(struct sockaddr_in) + 16,
+            sizeof(struct sockaddr_in) + 16,
             &pEvent->dwBytes, 
             (LPOVERLAPPED)pEvent
             );
 
-        s32 err = WSAGetLastError();
+        err = WSAGetLastError();
         if (res == FALSE && err != WSA_IO_PENDING) {
             RETURN_RES(ERROR_ACCEPTEX);
         }
@@ -188,13 +202,14 @@ extern "C" {
         RETURN_RES(ERROR_NO_ERROR);
     }
 
-    error_code async_recv(iocp_event * pEvent, OUT s32 * pnError, void * pData) {
+    error_code async_recv(struct iocp_event * pEvent, OUT s32 * pnError, void * pData) {
+        SOCKET s;
         SetLastError(0);
         if (!s_bInit) {
             RETURN_RES(ERROR_INIT_IOCP);
         }
 
-        SOCKET s = pEvent->s;
+        s = pEvent->s;
         memset(pEvent, 0, sizeof(struct iocp_event));
         pEvent->wbuf.buf = pEvent->buff;
         pEvent->wbuf.len = sizeof(pEvent->buff);
@@ -202,8 +217,8 @@ extern "C" {
         pEvent->p = pData;
         pEvent->event = EVENT_ASYNC_RECV;
         
-        if (SOCKET_ERROR == ::WSARecv(pEvent->s, &pEvent->wbuf, 1, &pEvent->dwBytes, &pEvent->dwFlags, (LPWSAOVERLAPPED)pEvent, NULL)) {
-            *pnError = ::GetLastError();
+        if (SOCKET_ERROR == WSARecv(pEvent->s, &pEvent->wbuf, 1, &pEvent->dwBytes, &pEvent->dwFlags, (LPWSAOVERLAPPED)pEvent, NULL)) {
+            *pnError = GetLastError();
             if (ERROR_IO_PENDING == *pnError) {
                 return ERROR_NO_ERROR;
             } else {
@@ -214,16 +229,17 @@ extern "C" {
         RETURN_RES(ERROR_NO_ERROR);
     }
 
-    error_code async_send(iocp_event * pEvent, OUT s32 * pnError, void * pData) {
+    error_code async_send(struct iocp_event * pEvent, OUT s32 * pnError, void * pData) {
+        s32 res;
         SetLastError(0);
         if (!s_bInit) {
             RETURN_RES(ERROR_INIT_IOCP);
         }
         pEvent->p = pData;
 
-        u32 res = ::WSASend(pEvent->s, &pEvent->wbuf, 1, NULL, 0, (LPWSAOVERLAPPED)pEvent, NULL);
+        res = WSASend(pEvent->s, &pEvent->wbuf, 1, NULL, 0, (LPWSAOVERLAPPED)pEvent, NULL);
         if (SOCKET_ERROR == res) {
-            *pnError = ::WSAGetLastError();
+            *pnError = WSAGetLastError();
             if (*pnError != WSA_IO_PENDING) {
                 return ERROR_WSASEND;
             }
@@ -236,24 +252,25 @@ extern "C" {
     }
 
     void safe_close(struct iocp_event * pEvent) {
+        s32 err;
         struct linger so_linger;
         so_linger.l_linger = 0;
         so_linger.l_onoff = 1;
-        s32 err = setsockopt(pEvent->s, SOL_SOCKET, SO_LINGER, (char *)&so_linger, sizeof(so_linger));
+        err = setsockopt(pEvent->s, SOL_SOCKET, SO_LINGER, (char *)&so_linger, sizeof(so_linger));
         closesocket(pEvent->s);
         free_event(pEvent);
     }
 
     error_code get_event(OUT struct iocp_event ** ppEvent, OUT s32 * pnError) {
-        SetLastError(0);
         DWORD nIOBytes = 0;
         BOOL nSucceed;
         s32 nerrno;
         SOCKET s = INVALID_SOCKET;
+        SetLastError(0);
         if (!s_bInit) {
             RETURN_RES(ERROR_INIT_IOCP);
         }
-        nSucceed = ::GetQueuedCompletionStatus(s_hCompletionPort, &nIOBytes, (PULONG_PTR)&s, (LPOVERLAPPED *)ppEvent, s_lWaittiem);
+        nSucceed = GetQueuedCompletionStatus(s_hCompletionPort, &nIOBytes, (PULONG_PTR)&s, (LPOVERLAPPED *)ppEvent, s_lWaittiem);
         if(NULL == *ppEvent) {
             RETURN_RES(ERROR_GET_EVENT);
         }
@@ -274,6 +291,7 @@ extern "C" {
         switch ((*ppEvent)->event) {
         case EVENT_ASYNC_ACCEPT:
             {
+                s32 res, err;
                 struct iocp_event * pEvent = malloc_event();
                 if (NULL == pEvent) {
                     ASSERT(false);
@@ -285,19 +303,19 @@ extern "C" {
                     RETURN_RES(ERROR_WSASOCKET_ERROR);
                 }
 
-                BOOL res = s_pFunAcceptEx(s, pEvent->s, pEvent->buff, 0,
-                    sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16, &pEvent->dwBytes, (LPOVERLAPPED)pEvent);
+                res = s_pFunAcceptEx(s, pEvent->s, pEvent->buff, 0,
+                    sizeof(struct sockaddr_in) + 16, sizeof(struct sockaddr_in) + 16, &pEvent->dwBytes, (LPOVERLAPPED)pEvent);
 
-                s32 err = WSAGetLastError();
+                err = WSAGetLastError();
                 if (res == FALSE && err != WSA_IO_PENDING) {
                     RETURN_RES(ERROR_ACCEPTEX);
                 }
 
                 if (ERROR_SUCCESS == nerrno) {
+                    s32 nLen = sizeof(struct sockaddr);
                     setsockopt((*ppEvent)->s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (const char*) &s, sizeof(s));
-                    s32 nLen = sizeof(sockaddr);
-                    if (SOCKET_ERROR == ::getpeername((*ppEvent)->s, (sockaddr*)&(*ppEvent)->remote, &nLen)) {
-                        ECHO_ERROR("getpeername error");
+                    if (SOCKET_ERROR == getpeername((*ppEvent)->s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
+                        ECHO_ERROR("%s", "getpeername error");
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
                     if (s_hCompletionPort != (CreateIoCompletionPort((HANDLE)((*ppEvent)->s), (HANDLE)s_hCompletionPort, (u_long)(HANDLE)((*ppEvent)->s), 0))) {
@@ -311,13 +329,13 @@ extern "C" {
         case EVENT_ASYNC_CONNECT:
             {
                 if (ERROR_SUCCESS == nerrno) {
+                    s32 nLen = sizeof(struct sockaddr);
                     if (SOCKET_ERROR == setsockopt(s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0)) {
                         RETURN_RES(ERROR_SET_SOCKET_OPT);
                     }
 
-                    s32 nLen = sizeof(sockaddr);
-                    if (SOCKET_ERROR == ::getpeername(s, (sockaddr*)&(*ppEvent)->remote, &nLen)) {
-                        ECHO_ERROR("getpeername error");
+                    if (SOCKET_ERROR == getpeername(s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
+                        ECHO_ERROR("%s", "getpeername error");
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
                     RETURN_RES(ERROR_NO_ERROR);
@@ -329,4 +347,6 @@ extern "C" {
         RETURN_RES(ERROR_NO_ERROR);
     }
 
+#ifdef __cplusplus
 };
+#endif //__cplusplus

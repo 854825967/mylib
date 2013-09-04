@@ -8,7 +8,14 @@
  * @warning ªπŒ¥≤‚ ‘ 
  */  
 #include "iocp_event.h"
+#ifdef __cplusplus
 extern "C" {
+#endif //__cplusplus
+
+    typedef enum _bool {
+        false = 0,
+        true = !false,
+    }bool;
 
 #ifdef THREAD_SAFE
     static RTL_CRITICAL_SECTION s_critical;
@@ -19,11 +26,11 @@ extern "C" {
 
     void event_mgr_init() {
         static s8 s_init = 0;
+        int i = 0;
         if (s_init) {
             return;
         }
 
-        int i = 0;
         memset(s_szEvent, 0, sizeof(s_szEvent));
         for (i=0; i<MACRO_EVENT_POOL_SIZE; i++) {
             s_szPos[i] = i;
@@ -37,6 +44,7 @@ extern "C" {
 
 
     struct iocp_event * malloc_event() {
+        struct iocp_event * pEvent = NULL;
 #ifdef THREAD_SAFE
         EnterCriticalSection(&s_critical);
 #endif //THREAD_SAFE
@@ -47,8 +55,8 @@ extern "C" {
 #endif //THREAD_SAFE
             return NULL;
         }
-
-        struct iocp_event * pEvent = &s_szEvent[s_szPos[s_index]];
+        
+        pEvent = &s_szEvent[s_szPos[s_index]];
         s_szPos[s_index++] = -1;
 #ifdef THREAD_SAFE
         LeaveCriticalSection(&s_critical);
@@ -59,6 +67,7 @@ extern "C" {
 
 
     void free_event(struct iocp_event * pEvent) {
+        s16 pos = 0;
         if ( (char *)pEvent < (char *)s_szEvent 
             || (char *)pEvent > (char *)(s_szEvent + MACRO_EVENT_POOL_SIZE - 1)
             || 0 != ((char *)pEvent - (char *)s_szEvent)%sizeof(struct iocp_event) ) {
@@ -68,7 +77,7 @@ extern "C" {
 #ifdef THREAD_SAFE
         EnterCriticalSection(&s_critical);
 #endif //THREAD_SAFE
-        s16 pos = ((char *)pEvent - (char *)s_szEvent)/sizeof(struct iocp_event);
+        pos = ((char *)pEvent - (char *)s_szEvent)/sizeof(struct iocp_event);
         if (s_szPos[--s_index] != -1) {
             ASSERT(false);
 #ifdef THREAD_SAFE
@@ -96,5 +105,7 @@ extern "C" {
         return;
     }
 
-};
 
+#ifdef __cplusplus
+};
+#endif //__cplusplus

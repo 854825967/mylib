@@ -15,8 +15,10 @@
 #define IOCP_EVENT_H
 
 #include "MultiSys.h"
-
+#ifdef __cplusplus
 extern "C" {
+#endif //__cplusplus
+
 #define THREAD_SAFE
 #define MACRO_EVENT_POOL_SIZE 8192
     /** IO事件类型 */
@@ -53,7 +55,9 @@ extern "C" {
     /** 回收一个事件体 */
     void free_event(struct iocp_event * pEvent);
 
+#ifdef __cplusplus
 };
+#endif //__cplusplus
 
 #endif //IOCP_EVENT_H
 

@@ -6,13 +6,17 @@
  * @date    2013.8.31 
  * @bug     还未测试 
  * @warning 还未测试 
- */  
+ */
 #ifndef IOCP_H
 #define IOCP_H
 
 #include "iocp_event.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif //__cplusplus
+    
+    /** 错误码 */
     enum _code {
         ERROR_UNKNOWN,
         ERROR_NO_ERROR = 1,
@@ -38,7 +42,7 @@ extern "C" {
 
         /** ERROR ADD BEFORE ERROR_CODE_MAX */
         ERROR_CODE_MAX
-    }; /** 错误码 */
+    };
 
 #define error_code enum _code
 
@@ -52,10 +56,10 @@ extern "C" {
     error_code async_listen(const char * pStrIP, s32 nPort, OUT s32 * pnError, void * pData, s32 backlog);
 
     /** 异步接收 */
-    error_code async_recv(iocp_event * pEvent, OUT s32 * pnError, void * pData);
+    error_code async_recv(struct iocp_event * pEvent, OUT s32 * pnError, void * pData);
 
     /** 异步发送 */
-    error_code async_send(iocp_event * pEvent, OUT s32 * pnError, void * pData);
+    error_code async_send(struct iocp_event * pEvent, OUT s32 * pnError, void * pData);
 
     /** 设置单词io loop的时间, 毫秒为单位 */
     void set_waittime(s64 lMilliseconds); 
@@ -68,6 +72,9 @@ extern "C" {
 
     /** 获取io 时间 */
     error_code get_event(OUT struct iocp_event ** ppEvent, OUT s32 * pnError);
+
+#ifdef __cplusplus
 };
+#endif //__cplusplus
 
 #endif //IOCP_H

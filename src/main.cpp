@@ -8,13 +8,13 @@ void Connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
     const char * ip = NULL;
     g_pNet->CRemoteInfo(nConnectID, ip, nPort);
 
-    //ECHO_TRACE("连接成功, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
+    ECHO_TRACE("连接成功, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
     g_pNet->CSend(nConnectID, pContext, strlen((char *)pContext));
 
 }
 
 void ConnectFail(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    //ECHO_TRACE("连接失败, 上下文 %s", (char *)pContext);
+    ECHO_TRACE("连接失败, 上下文 %s", (char *)pContext);
 }
 
 void ConnectionBreak(const s32 nConnectID, const void * pContext, const s32 nSize) {
@@ -22,7 +22,7 @@ void ConnectionBreak(const s32 nConnectID, const void * pContext, const s32 nSiz
     const char * ip = NULL;
     g_pNet->CRemoteInfo(nConnectID, ip, nPort);
 
-    //ECHO_TRACE("连接断开, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
+    ECHO_TRACE("连接断开, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
 
 }
 
@@ -31,7 +31,7 @@ void RemoteConnected(const s32 nConnectID, const void * pContext, const s32 nSiz
     const char * ip = NULL;
     g_pNet->CRemoteInfo(nConnectID, ip, nPort);
 
-    //ECHO_TRACE("新的远端连进来, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
+    ECHO_TRACE("新的远端连进来, 上下文 %s, 远端IP %s 端口 %d", (char *)pContext, ip, nPort);
 }
 
 void Recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
