@@ -14,7 +14,7 @@ __declspec(dllexport)
 #endif //#if defined WIN32 || defined WIN64
 
 INet * GET_NET_FUN(const u8 threadcount, const u16 sockcount, const u16 waittime) {
-    CNet * p = NULL;//NEW CNet(threadcount, sockcount, waittime);
+    CNet * p = NEW CNet(threadcount, sockcount, waittime);
     return p;
 }
 

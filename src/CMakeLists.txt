@@ -1,4 +1,4 @@
-#cmake file for project association                     #表示注释 
+#cmake file for project association                     #表示注释
 #author:大T
 #created:2013/4/9
 
@@ -11,6 +11,8 @@ INCLUDE_DIRECTORIES(
 
 #设置变量，表示所有的源文件
 SET(SOURCE_FILES
+    "./libnet/Linux/cepoll_event.c"
+    "./libnet/Linux/cepoll.c"
     "main.cpp"
 )
 

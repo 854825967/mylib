@@ -1,9 +1,9 @@
-#cmake file for project association                     #表示注释 
+#cmake file for project association                     #表示注释
 #author:大T
 #created:2013/4/9
 
 #cmake 最低版本要求，低于2.6 构建过程会被终止
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8) 
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 #定义工程名称
 PROJECT(mylib)
@@ -18,8 +18,8 @@ MESSAGE(STATUS "Project Directory: ${PROJECT_SOURCE_DIR}")
 #设置输出路径变量
 SET(OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
-#指定编译器 
-#SET(CMAKE_C_FLAGS_DEBUG "-g -Wall")          
+#指定编译器
+#SET(CMAKE_C_FLAGS_DEBUG "-g -std=c++0x -Wall -D_DEBUG")
 
 IF(UNIX)
 	MESSAGE(STATUS "UNIX")

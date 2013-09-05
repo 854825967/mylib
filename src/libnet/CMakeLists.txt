@@ -61,10 +61,10 @@ SET(LINUX_NET_FILES
     "./Linux/CNet.cpp"
     "./Linux/CNet.h"
     "./Linux/CQueue.h"
-    "./Linux/epoll.h"
-    "./Linux/epoll.c"
-    "./Linux/epoll_event.h"
-    "./Linux/epoll_event.c"
+    "./Linux/cepoll.h"
+    "./Linux/cepoll.c"
+    "./Linux/cepoll_event.h"
+    "./Linux/cepoll_event.c"
 )
 
 SET(MAC_OS_NET_FILES
