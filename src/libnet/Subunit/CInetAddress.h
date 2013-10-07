@@ -2,8 +2,6 @@
 #define CINETADDRESS_H
 
 #include "MultiSys.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 struct CInetAddress {
     struct sockaddr_in m_address;

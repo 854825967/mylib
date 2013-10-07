@@ -10,6 +10,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define CSleep(n) usleep((n) * 1000)
 #define SafeSprintf snprintf

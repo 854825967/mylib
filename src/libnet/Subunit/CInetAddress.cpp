@@ -1,5 +1,4 @@
 #include "CInetAddress.h"
-#include <arpa/inet.h>
 
 CInetAddress::CInetAddress(const char * pStrIp, const u16 nPort, const u8 type) {
     Initialize(pStrIp, nPort, type);
