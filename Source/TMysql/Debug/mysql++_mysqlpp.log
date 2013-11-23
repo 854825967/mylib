@@ -1,0 +1,39 @@
+﻿生成启动时间为 2013/11/22 星期五 17:25:56。
+     1>项目“D:\Code\mylib\Source\TMysql\mysql++_mysqlpp.vcxproj”在节点 2 上(Build 个目标)。
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Code\mylib\Source\TMysql\Debug\mysqlpp.exe" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"D:\Code\mylib\Source\TMysql\Debug\mysqlpp.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Code\mylib\Source\TMysql\Debug\mysqlpp.lib" /MACHINE:X86 /SAFESEH Debug\beemutex.obj
+         Debug\cmdline.obj
+         Debug\connection.obj
+         Debug\cpool.obj
+         Debug\datetime.obj
+         Debug\dbdriver.obj
+         Debug\field_names.obj
+         Debug\field_types.obj
+         Debug\manip.obj
+         Debug\myset.obj
+         Debug\mysql++.obj
+         Debug\mystring.obj
+         Debug\null.obj
+         Debug\options.obj
+         Debug\qparms.obj
+         Debug\query.obj
+         Debug\result.obj
+         Debug\row.obj
+         Debug\scopedconnection.obj
+         Debug\sqlstream.obj
+         Debug\sql_buffer.obj
+         Debug\ssqls2.obj
+         Debug\stadapter.obj
+         Debug\tcp_connection.obj
+         Debug\transaction.obj
+         Debug\uds_connection.obj
+         Debug\utility.obj
+         Debug\vallist.obj
+         Debug\wnp_connection.obj
+            正在创建库 D:\Code\mylib\Source\TMysql\Debug\mysqlpp.lib 和对象 D:\Code\mylib\Source\TMysql\Debug\mysqlpp.exp
+     1>LINK : fatal error LNK1561: 必须定义入口点
+     1>已完成生成项目“D:\Code\mylib\Source\TMysql\mysql++_mysqlpp.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:01.13
