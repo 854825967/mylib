@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Source\Kernel\main.cpp" />
+    <ClCompile Include="..\..\..\Source\Public\WinConsole.cpp">
+      <Filter>Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Public\CStream.cpp">
+      <Filter>Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Public\CDumper.cpp">
+      <Filter>Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Kernel\Core\ModuleMgr.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Kernel\Core\Kernel.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Kernel\Head.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Source\Public\MultiSys.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\LinuxSys.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\MacSys.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\WinSys.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\CLock.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\CLockUnit.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\Pool.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\Tools.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\MacTools.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\LinuxTools.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\WinTools.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\Console.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\WinConsole.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\CStream.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Public\CDumper.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\API\IKernel.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\API\IModule.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Core\Kernel.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Core\ModuleMgr.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Head.h" />
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\uds_connection.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\utility.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\vallist.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\wnp_connection.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\autoflag.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\beemutex.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\cmdline.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\common.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\comparable.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\connection.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\cpool.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\datetime.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\dbdriver.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\exceptions.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\field.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\field_names.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\field_types.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\insertpolicy.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\manip.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\myset.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\mysql++.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\mystring.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\noexceptions.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\null.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\options.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\qparms.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\query.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\querydef.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\refcounted.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\result.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\row.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\scopedconnection.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\sql_buffer.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\sql_types.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\sqlstream.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\ssqls.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\ssqls2.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\stadapter.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\stream2string.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\tcp_connection.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\tiny_int.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\transaction.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Kernel\Mysql++\type_info.h">
+      <Filter>Mysql++</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\Source\Kernel\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Public">
+      <UniqueIdentifier>{CF49FB61-2830-40EE-A017-D7D428EB775C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API">
+      <UniqueIdentifier>{F0E1A953-4158-475A-B2B1-2F80A0AB7275}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{d01a9dc7-ab78-4c2b-b1bd-630d9b51b5fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{21e424a3-3920-4bb5-8ce7-3a12e9aa023d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mysql++">
+      <UniqueIdentifier>{9c2a11e3-b272-4621-9f64-64e807ec655e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
