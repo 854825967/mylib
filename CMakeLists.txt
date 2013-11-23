@@ -39,29 +39,29 @@ ENDIF(APPLE)
 
 #设置公共库代码目录
 SET(PUBLIC_FILES
-    "${PROJECT_SOURCE_DIR}/src/Public/MultiSys.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/LinuxSys.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/MacSys.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/WinSys.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/CLock.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/CLockUnit.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/Pool.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/Tools.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/MacTools.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/LinuxTools.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/WinTools.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/Console.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/WinConsole.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/WinConsole.cpp"
-    "${PROJECT_SOURCE_DIR}/src/Public/CStream.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/CStream.cpp"
-    "${PROJECT_SOURCE_DIR}/src/Public/CDumper.h"
-    "${PROJECT_SOURCE_DIR}/src/Public/CDumper.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/MultiSys.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/LinuxSys.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/MacSys.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/WinSys.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CLock.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CLockUnit.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/Pool.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/Tools.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/MacTools.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/LinuxTools.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/WinTools.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/Console.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/WinConsole.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/WinConsole.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CStream.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CStream.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CDumper.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CDumper.cpp"
 )
 
 MESSAGE(STATUS "Public files : ${PUBLIC_FILES}")
 
 #添加子目录
-ADD_SUBDIRECTORY(./src/libnet)
-ADD_SUBDIRECTORY(./src/liblog)
-ADD_SUBDIRECTORY(./src)
+ADD_SUBDIRECTORY(./Source/Net_library)
+#ADD_SUBDIRECTORY(./Source/Log_library)
+ADD_SUBDIRECTORY(./Source/Kernel)
