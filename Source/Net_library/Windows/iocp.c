@@ -10,9 +10,7 @@ extern "C" {
         true = !false,
     }bool;
 
-#define RETURN_RES(code) {\
-    *pnError = GetLastError(); \
-    return code;}
+#define RETURN_RES(code) {*pnError = GetLastError();return code;}
 
     static LPFN_ACCEPTEX s_pFunAcceptEx = NULL;
     static LPFN_CONNECTEX s_pFunConnectEx = NULL;
@@ -108,6 +106,7 @@ extern "C" {
         pEvent->s = s;
         pEvent->p = pData;
         pEvent->event = EVENT_ASYNC_CONNECT;
+        pEvent->remote.sin_family = AF_INET;
         if((pEvent->remote.sin_addr.s_addr = inet_addr(pStrIP)) == INADDR_NONE) {
             free_event(pEvent);
             RETURN_RES(ERROR_IP_FORMAT);
@@ -274,12 +273,14 @@ extern "C" {
         }
         nSucceed = GetQueuedCompletionStatus(s_hCompletionPort, &nIOBytes, (PULONG_PTR)&s, (LPOVERLAPPED *)ppEvent, s_lWaittiem);
         if(NULL == *ppEvent) {
+            CSleep(1);
             RETURN_RES(ERROR_GET_EVENT);
         }
 
         nerrno = GetLastError();
         if (!nSucceed ) {
             if (WAIT_TIMEOUT == errno) {
+                CSleep(1);
                 RETURN_RES(ERROR_GET_EVENT_TIME_OUT)
             }
         }
@@ -297,11 +298,13 @@ extern "C" {
                 struct iocp_event * pEvent = malloc_event();
                 if (NULL == pEvent) {
                     ASSERT(false);
+                    CSleep(1);
                     RETURN_RES(ERROR_MALLOC_EVENT);
                 }
                 pEvent->p = (*ppEvent)->p;
                 pEvent->event = EVENT_ASYNC_ACCEPT;
                 if (INVALID_SOCKET == (pEvent->s = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED))) {
+                    CSleep(1);
                     RETURN_RES(ERROR_WSASOCKET_ERROR);
                 }
 
@@ -310,6 +313,7 @@ extern "C" {
 
                 err = WSAGetLastError();
                 if (res == FALSE && err != WSA_IO_PENDING) {
+                    CSleep(1);
                     RETURN_RES(ERROR_ACCEPTEX);
                 }
 
@@ -317,6 +321,7 @@ extern "C" {
                     s32 nLen = sizeof(struct sockaddr);
                     setsockopt((*ppEvent)->s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (const char*) &s, sizeof(s));
                     if (SOCKET_ERROR == getpeername((*ppEvent)->s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
+                        CSleep(1);
                         ECHO_ERROR("%s", "getpeername error");
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
@@ -333,11 +338,13 @@ extern "C" {
                 if (ERROR_SUCCESS == nerrno) {
                     s32 nLen = sizeof(struct sockaddr);
                     if (SOCKET_ERROR == setsockopt(s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0)) {
+                        CSleep(1);
                         RETURN_RES(ERROR_SET_SOCKET_OPT);
                     }
 
                     if (SOCKET_ERROR == getpeername(s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
                         ECHO_ERROR("%s", "getpeername error");
+                        CSleep(1);
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
                     RETURN_RES(ERROR_NO_ERROR);

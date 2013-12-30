@@ -90,15 +90,15 @@ extern "C" {
         }
 
 #ifdef _DEBUG
-        {
-            int i=0;
-            for(i=0; i<MACRO_EVENT_POOL_SIZE; i++) {
-                if (s_szPos[i] == pos) {
-                    ASSERT(false);
-                    return;
-                }
-            }
-        }
+//         {
+//             int i=0;
+//             for(i=0; i<MACRO_EVENT_POOL_SIZE; i++) {
+//                 if (s_szPos[i] == pos) {
+//                     ASSERT(false);
+//                     return;
+//                 }
+//             }
+//         }
 #endif //_DEBUG
 
         s_szPos[s_index] = pos;

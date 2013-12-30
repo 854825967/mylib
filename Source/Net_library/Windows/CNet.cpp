@@ -65,7 +65,9 @@ void CNet::CSend(const s32 nConnectID, const void * pData, const s32 nSize) {
         pEvent->s = pCConnection->s;
         s32 err;
         if (ERROR_NO_ERROR != async_send(pEvent, &err, pCConnection)) {
-            ASSERT(false);
+            //some problem in here must be killed// like 10054
+            //ASSERT(false);
+            safe_shutdown(pEvent);
         }
     }
 
@@ -108,7 +110,7 @@ THREAD_FUN CNet::NetLoop(LPVOID p) {
 
 void CNet::DealConnectEvent(struct iocp_event * pEvent) {
     ASSERT(m_szCallAddress[CALL_CONNECTED]);
-    if (m_szCallAddress[CALL_REMOTE_CONNECTED] != NULL) {
+    if (m_szCallAddress[CALL_CONNECTED] != NULL) {
         if (ERROR_SUCCESS == pEvent->nerron) {
             s32 nConnectID = m_ConnectPool.CreateID();
             m_ConnectPool[nConnectID]->s = pEvent->s;
@@ -170,6 +172,7 @@ void CNet::DealRecvEvent(struct iocp_event * pEvent) {
         CConnection * pCConnection = (CConnection *) (pEvent->p);
         if (0 == pEvent->ioBytes) {
             m_szCallAddress[CALL_CONNECTION_BREAK](m_ConnectPool.QueryID(pCConnection), pCConnection->pContext, 0);
+            m_ConnectPool.Recover(pCConnection);
             safe_shutdown(pEvent);
             safe_close(pEvent);
         } else {

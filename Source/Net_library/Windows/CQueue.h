@@ -26,7 +26,8 @@ public:
 
     struct iocp_event * read() {//不可在多个线程中使用 谢谢
         while (m_queue[m_nRIndex] == NULL) {
-            CSleep(10);
+            CSleep(1);
+            return NULL;
         }
 
         struct iocp_event * pEvent = m_queue[m_nRIndex];

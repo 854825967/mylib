@@ -1,4 +1,0 @@
-D:/Code/mylib/build/CMakeFiles/ALL_BUILD.dir
-D:/Code/mylib/build/CMakeFiles/ZERO_CHECK.dir
-D:/Code/mylib/build/Source/Net_library/CMakeFiles/libnet.dir
-D:/Code/mylib/build/Source/Kernel/CMakeFiles/main.dir
