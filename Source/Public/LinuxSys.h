@@ -1,4 +1,4 @@
-//#ifdef linux
+#ifdef linux
 #ifndef LINUXSYS_H
 #define LINUXSYS_H
 
@@ -53,4 +53,4 @@ typedef int32_t s32;
 typedef int64_t s64;
 
 #endif  //LINUXSYS_H
-//#endif //#ifdef linux
+#endif //#ifdef linux
