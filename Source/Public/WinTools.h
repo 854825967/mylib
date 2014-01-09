@@ -28,7 +28,7 @@ inline string GetCurrentTimeString() {
     char strtime[64] = {0};
     SYSTEMTIME time;
     GetLocalTime(&time);
-    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d", 
+    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d",
         time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
     return strtime;
 }
@@ -40,7 +40,7 @@ inline string GetTimeString(const u64 ntick) {
     lt = ntick/1000;
     errno_t nerror = localtime_s(&_tm, &lt); //UTC
     printf("%d\n", nerror);
-    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d", 
+    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d",
         _tm.tm_year + 1900, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
     return strtime;
 }
@@ -49,8 +49,8 @@ inline bool GetAcceptExFun(LPFN_ACCEPTEX & acceptfun) {
     GUID GuidAcceptEx = WSAID_ACCEPTEX;
     DWORD dwBytes = 0;
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx, 
-        sizeof(GuidAcceptEx), &acceptfun, sizeof(acceptfun), 
+    WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx,
+        sizeof(GuidAcceptEx), &acceptfun, sizeof(acceptfun),
         &dwBytes, NULL, NULL);
 
     if (NULL == acceptfun) {
@@ -65,8 +65,8 @@ inline bool GetConnectExFun(LPFN_CONNECTEX & connectfun) {
     GUID GuidConnectEx = WSAID_CONNECTEX;
     DWORD dwBytes = 0;
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx, 
-        sizeof(GuidConnectEx), &connectfun, sizeof(connectfun), 
+    WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidConnectEx,
+        sizeof(GuidConnectEx), &connectfun, sizeof(connectfun),
         &dwBytes, NULL, NULL);
 
     if (NULL == connectfun) {
@@ -169,19 +169,19 @@ inline string GBKToUTF8(const char * pStrGBK) {
 }
 
 inline string UTF8ToGBK(const char * pStrUtf8) {
-		int len=MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, NULL,0);
-		wchar_t * wszGBK = NEW wchar_t[len];
-		memset(wszGBK, 0, len);
-		MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, (LPWSTR)wszGBK, len); 
+    int len=MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, NULL,0);
+    wchar_t * wszGBK = NEW wchar_t[len];
+    memset(wszGBK, 0, len);
+    MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, (LPWSTR)wszGBK, len);
 
-		len = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, NULL, 0, NULL, NULL);
-		char *szGBK=NEW char[len + 1];
-		memset(szGBK, 0, len + 1);
-		WideCharToMultiByte (CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL,NULL);
-		string temp(szGBK);
-		delete[] szGBK;
-		delete[] wszGBK;
-		return temp;
+    len = WideCharToMultiByte(CP_ACP, 0, (LPWSTR)wszGBK, -1, NULL, 0, NULL, NULL);
+    char *szGBK=NEW char[len + 1];
+    memset(szGBK, 0, len + 1);
+    WideCharToMultiByte (CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL,NULL);
+    string temp(szGBK);
+    delete[] szGBK;
+    delete[] wszGBK;
+    return temp;
 }
 
 extern "C" {

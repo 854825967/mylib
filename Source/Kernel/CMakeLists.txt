@@ -1,8 +1,8 @@
-#cmake file for project association                     #±íÊ¾×¢ÊÍ
-#author:´óT
+#cmake file for project association                     #è¡¨ç¤ºæ³¨é‡Š
+#author:å¤§T
 #created:2013/4/9
 
-#Ïà¹ØÍ·ÎÄ¼þµÄÄ¿Â¼
+#ç›¸å…³å¤´æ–‡ä»¶çš„ç›®å½•
 IF(UNIX)
     INCLUDE_DIRECTORIES(
         "../Public"
@@ -31,7 +31,7 @@ IF(APPLE)
     )
 ENDIF(APPLE)
 
-#ÉèÖÃ±äÁ¿£¬±íÊ¾ËùÓÐµÄÔ´ÎÄ¼þ
+#è®¾ç½®å˜é‡ï¼Œè¡¨ç¤ºæ‰€æœ‰çš„æºæ–‡ä»¶
 SET(SOURCE_FILES
     "main.cpp"
 )
@@ -49,12 +49,12 @@ SOURCE_GROUP(API FILES ${API})
 MESSAGE(STATUS "Public : ${PUBLIC_FILES}")
 MESSAGE(STATUS "API : ${API}")
 
-#Ïà¹Ø¿âÎÄ¼þµÄÄ¿Â¼
+#ç›¸å…³åº“æ–‡ä»¶çš„ç›®å½•
 #LINK_DIRECTORIES(
 #/usr/local/lib
 #)
 
-#ÉèÖÃÊä³öÂ·¾¶,²¢ÇÒÉú³É¿ÉÖ´ÐÐÒýÇæÎÄ¼þ
+#è®¾ç½®è¾“å‡ºè·¯å¾„,å¹¶ä¸”ç”Ÿæˆå¯æ‰§è¡Œå¼•æ“Žæ–‡ä»¶
 SET(EXECUTABLE_OUTPUT_PATH "${OUTPUT_PATH}/main")
 ADD_EXECUTABLE(main
     ${SOURCE_FILES}
@@ -62,9 +62,9 @@ ADD_EXECUTABLE(main
     ${API}
 )
 
-#ÒÀÀµµÄ¿âÎÄ¼þ
+#ä¾èµ–çš„åº“æ–‡ä»¶
 #TARGET_LINK_LIBRARY(association core)
 
-#±íÊ¾Éú³ÉµÄÖ´ÐÐÎÄ¼þËùÔÚÂ·¾¶
+#è¡¨ç¤ºç”Ÿæˆçš„æ‰§è¡Œæ–‡ä»¶æ‰€åœ¨è·¯å¾„
 #SET_TARGET_PROPERTIES(utility PROPERTIES
 #RUNTIME_OUTPUT_DIRECTORY> "${OUTPUT_PATH}/libnet")

@@ -1,4 +1,4 @@
-#ifdef linux
+//#ifdef linux
 #ifndef LINUXSYS_H
 #define LINUXSYS_H
 
@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
+#include <dlfcn.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -41,15 +42,15 @@
     printf("[error]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, log); \
     }
 
-    typedef unsigned char u8;
-    typedef unsigned short u16;
-    typedef uint32_t u32;
-    typedef uint64_t u64;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-    typedef char s8;
-    typedef short s16;
-    typedef int32_t s32;
-    typedef int64_t s64;
+typedef char s8;
+typedef short s16;
+typedef int32_t s32;
+typedef int64_t s64;
 
 #endif  //LINUXSYS_H
-#endif //#ifdef linux
+//#endif //#ifdef linux

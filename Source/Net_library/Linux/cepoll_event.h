@@ -59,5 +59,4 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif //__cplusplus
-
 #endif //CEPOLL_EVENT_H

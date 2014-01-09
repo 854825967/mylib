@@ -6,19 +6,6 @@
 using namespace std;
 #pragma comment(lib, "dbghelp.lib")
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-void _AssertionFail(const char * strFile, int nLine, const char * pFunName) {
-    //CSleep(1);
-    fflush(stdout);
-    fprintf(stderr, "\nAsssertion failed: file %s, line %d, function %s ", strFile, nLine, pFunName);
-    fflush(stderr);
-    abort();
-}
-#ifdef __cplusplus
-};
-#endif //__cplusplus
 TCHAR    m_acDumpName[MAX_PATH*2] = { _T("\0") };
 
 #define snArraySize( x )    sizeof(x) / sizeof(x[0])

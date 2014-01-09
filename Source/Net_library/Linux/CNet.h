@@ -1,7 +1,7 @@
 #ifdef linux
-#ifndef LINUXNETCORE_H
-#define LINUXNETCORE_H
 #include "INet.h"
+#ifndef CNET_H
+#define CNET_H
 
 class CNet : public INet {
 public:
@@ -33,5 +33,5 @@ private:
 private:
 };
 
-#endif //LINUXNETCORE_H
+#endif //CNET_H
 #endif //linux

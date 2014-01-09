@@ -3,11 +3,11 @@
 #include "MultiSys.h"
 
 typedef enum call_type {
-    CALL_CONNECTED = 0, /** Á¬½ÓÔ¶¶Ë³É¹¦ */
-    CALL_CONNECT_FAILED, /** Á¬½ÓÔ¶¶ËÊ§°Ü */
-    CALL_REMOTE_CONNECTED, /** ĞÂµÄÔ¶¶ËÁ¬½Ó½øÀ´ */
-    CALL_CONNECTION_BREAK, /** Á¬½Ó¶Ï¿ª */
-    CALL_RECV_DATA,  /** ĞÂµÄÊı¾İµ½´ï */
+    CALL_CONNECTED = 0, /** è¿æ¥è¿œç«¯æˆåŠŸ */
+    CALL_CONNECT_FAILED, /** è¿æ¥è¿œç«¯å¤±è´¥ */
+    CALL_REMOTE_CONNECTED, /** æ–°çš„è¿œç«¯è¿æ¥è¿›æ¥ */
+    CALL_CONNECTION_BREAK, /** è¿æ¥æ–­å¼€ */
+    CALL_RECV_DATA,  /** æ–°çš„æ•°æ®åˆ°è¾¾ */
 
     /** add call type before this */
     CALL_TYPE_COUNT
@@ -17,25 +17,25 @@ typedef void (*CALL_FUN)(const s32 nConnectID, const void * pContext, const s32 
 
 class INet {
 public:
-    /** Òì²½ÕìÌı,ÉÏÏÂÎÄ»áÔÚCALL_REMOTE_CONNECTEDºÍCALL_CONNECTION_BREAKÊÂ¼şÖĞ»Ø´ø¸øÊ¹ÓÃÕß,×¢ÒâÖ»ÊÇ»Ø´øÒ»¸öÖ¸ÕëµØÖ· */
+    /** å¼‚æ­¥ä¾¦å¬,ä¸Šä¸‹æ–‡ä¼šåœ¨CALL_REMOTE_CONNECTEDå’ŒCALL_CONNECTION_BREAKäº‹ä»¶ä¸­å›å¸¦ç»™ä½¿ç”¨è€…,æ³¨æ„åªæ˜¯å›å¸¦ä¸€ä¸ªæŒ‡é’ˆåœ°å€ */
     virtual bool CListen(const char * pStrIP, const s32 nPort, const void * pContext, const s32 nBacklog = 2048)  = 0;
 
-    /** Òì²½Á¬½Ó,ÉÏÏÂÎÄ»áÔÚCALL_CONNECTEDºÍCALL_CONNECTION_BREAKÊÂ¼şÖĞ»Ø´ø¸øÊ¹ÓÃÕß,×¢ÒâÖ»ÊÇ»Ø´øÒ»¸öÖ¸Õë */
+    /** å¼‚æ­¥è¿æ¥,ä¸Šä¸‹æ–‡ä¼šåœ¨CALL_CONNECTEDå’ŒCALL_CONNECTION_BREAKäº‹ä»¶ä¸­å›å¸¦ç»™ä½¿ç”¨è€…,æ³¨æ„åªæ˜¯å›å¸¦ä¸€ä¸ªæŒ‡é’ˆ */
     virtual bool CConnectEx(const char * pStrIP, const s32 nPort, const void * pContext = NULL)  = 0;
 
-    /** ¹Ø±ÕÁ¬½Ó,°²È«¹Ø±Õ,ÔÚËùÓĞÊı¾İ¾¡¿ÉÄÜ·¢ËÍÍêÖ®ºó¹Ø±ÕÁ¬½Ó (¸Ã²Ù×÷»á´Ù·¢CALL_CONNECTION_BREAKÊÂ¼ş */
+    /** å…³é—­è¿æ¥,å®‰å…¨å…³é—­,åœ¨æ‰€æœ‰æ•°æ®å°½å¯èƒ½å‘é€å®Œä¹‹åå…³é—­è¿æ¥ (è¯¥æ“ä½œä¼šä¿ƒå‘CALL_CONNECTION_BREAKäº‹ä»¶ */
     virtual bool CClose(const s32 nConnectID)  = 0;
 
-    /** ·¢ËÍÊı¾İ */
+    /** å‘é€æ•°æ® */
     virtual void CSend(const s32 nConnectID, const void * pData, const s32 nSize)  = 0;
 
-    /** »ñÈ¡Á¬½ÓÔ¶¶ËĞÅÏ¢ */
+    /** è·å–è¿æ¥è¿œç«¯ä¿¡æ¯ */
     virtual void CRemoteInfo(const s32 nConnectID, const char * & ip, s32 & nPort)  = 0;
 
-    /** ÉèÖÃ»Øµ÷µØÖ·,»Øµ÷ÀàĞÍ¼ûCALLBACK_TYPE */
+    /** è®¾ç½®å›è°ƒåœ°å€,å›è°ƒç±»å‹è§CALLBACK_TYPE */
     virtual void CSetCallBackAddress(const CALLBACK_TYPE eType, const CALL_FUN address) = 0;
 
-    /** Æô¶¯ÊÂ¼şÆË×½ demonÊÇ·ñÎª¾«ÁéÄ£Ê½, Èõ²»Îª¾«ÁéÄ£Ê½, nFramemsÎªµ¥Ö¡loopÊÂ¼ş, µ±nFramemsÎª0Ê±CLoopÒ»Ö±×èÈû */
+    /** å¯åŠ¨äº‹ä»¶æ‰‘æ‰ demonæ˜¯å¦ä¸ºç²¾çµæ¨¡å¼, å¼±ä¸ä¸ºç²¾çµæ¨¡å¼, nFramemsä¸ºå•å¸§loopäº‹ä»¶, å½“nFramemsä¸º0æ—¶CLoopä¸€ç›´é˜»å¡ */
     virtual void CLoop(bool demon, s32 nFramems) = 0;
 };
 
@@ -62,6 +62,22 @@ inline INet * GetNetWorker(const char * dllPath, const u32 threadCount = 1, cons
     FUN_GET_NET pFunGetNet = (FUN_GET_NET)::GetProcAddress(hinst, NAME_OF_GET_NET_FUN);
     ASSERT(pFunGetNet != NULL);
     if (NULL == pFunGetNet) {
+        return NULL;
+    }
+
+    pNetCore = pFunGetNet(threadCount, conCount, waitTime);
+    ASSERT(pNetCore != NULL);
+#elif defined linux
+    void * handle = dlopen(dllPath, RTLD_LAZY);
+    if (NULL == handle) {
+        ECHO_ERROR("Dll %s is not exists, Error : %s", dllPath, dlerror());
+        ASSERT(false);
+        return false;
+    }
+
+    FUN_GET_NET pFunGetNet = (FUN_GET_NET)dlsym(handle, NAME_OF_GET_NET_FUN);
+    if (NULL == pFunGetNet) {
+        ASSERT(false);
         return NULL;
     }
 

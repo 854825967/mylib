@@ -5,9 +5,9 @@
 
 class INet;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 #if defined WIN32 || defined WIN64
 __declspec(dllexport)
@@ -25,6 +25,6 @@ void RETURN_NET_FUN(INet * p) {
     delete p;
 }
 
-#ifdef __cplusplus
-};
-#endif
+//#ifdef __cplusplus
+//};
+//#endif

@@ -12,6 +12,10 @@
 #include <pthread.h>
 #include <errno.h>
 
+inline u64 GetCurrentTimeTick() {
+
+    return 0;
+}
 
 #ifdef __cplusplus
 extern "C" {
