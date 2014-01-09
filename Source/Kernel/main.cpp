@@ -127,12 +127,12 @@ s32 main(int argc, char * args[]) {
     SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.dll");
     ECHO_TRACE("dll path : %s", szPath);
 
-    pNet = GetNetWorker(szPath, 2);
+    pNet = GetNetWorker(szPath, 4);
     pNet->CSetCallBackAddress(CALL_CONNECTED, Connected);
     pNet->CSetCallBackAddress(CALL_CONNECT_FAILED, ConnectedFailed);
     pNet->CSetCallBackAddress(CALL_RECV_DATA, Recv);
     pNet->CSetCallBackAddress(CALL_CONNECTION_BREAK, ConnectBreak);
-    for (s32 i=0; i<64; i++) {
+    for (s32 i=0; i<4; i++) {
         connectinfo * pInfo = NEW connectinfo;
         bool b = Connect(pInfo);
         while (!b) {

@@ -34,6 +34,7 @@ extern "C" {
 #endif //__cplusplus
 #define ECHO(format, ...) {\
     char _log[4096] = {0}; \
+    memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED); \
     printf("%s\n", _log); \
@@ -42,6 +43,7 @@ extern "C" {
 
 #define ECHO_TRACE(format, ...) {\
     char _log[4096] = {0}; \
+    memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_GREEN); \
     printf("[info] %s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
@@ -50,6 +52,7 @@ extern "C" {
 
 #define ECHO_WARN(format, ...) {\
     char _log[4096] = {0}; \
+    memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN); \
     printf("[warn]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
@@ -58,6 +61,7 @@ extern "C" {
 
 #define ECHO_ERROR(format, ...) {\
     char _log[4096] = {0}; \
+    memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_RED); \
     printf("[error]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \

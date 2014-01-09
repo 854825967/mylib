@@ -24,7 +24,7 @@ void _AssertionFail(const char * strFile, int nLine, const char * pFunName);
 #define NEW new
 #define MALLOC malloc
 #define FREE free
-#define  ASSERT(p) void(0);
+#define  ASSERT(p) (p);
 #endif //_DEBUG
 
 #define BUFF_SIZE 4096
