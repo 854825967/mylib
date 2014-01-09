@@ -1,7 +1,7 @@
 #include "MultiSys.h"
-#include "../Public/CDumper.h"
-#include "../Public/Tools.h"
-#include "../Public/CHashMap.h"
+#include "CDumper.h"
+#include "Tools.h"
+#include "CHashMap.h"
 #include <vector>
 #include <iostream>
 
@@ -20,15 +20,17 @@ public:
 INet * pNet = NULL;
 bool DnsParse(const char* domain, char * pStrIP, size_t size) {
     struct hostent * p;
-//    if ((p = ::gethostname(domain))==NULL) {
-//        return false;
-//    }
+#ifdef WIN32
+   if ((p = gethostbyname(domain))==NULL) {
+       return false;
+   }
 
-//    SafeSprintf(pStrIP, size, size, "%u.%u.%u.%u", (unsigned char)p->h_addr_list[0][0],
-//        (unsigned char)p->h_addr_list[0][1],
-//        (unsigned char)p->h_addr_list[0][2],
-//        (unsigned char)p->h_addr_list[0][3]);
-//    return true;
+   SafeSprintf(pStrIP, size, size, "%u.%u.%u.%u", (unsigned char)p->h_addr_list[0][0],
+       (unsigned char)p->h_addr_list[0][1],
+       (unsigned char)p->h_addr_list[0][2],
+       (unsigned char)p->h_addr_list[0][3]);
+#endif //WIN32
+    return true;
 }
 
 struct connectinfo {
@@ -127,7 +129,11 @@ s32 main(int argc, char * args[]) {
     ASSERT(WSAStartup(MAKEWORD(2,2), &wsd) == 0);
 #endif //defined WIN32 || defined WIN64
     char szPath[512] = {0};
+#ifdef WIN32
+    SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.dll");
+#elif defined linux
     SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.so");
+#endif //WIN32
     ECHO_TRACE("dll path : %s", szPath);
 
     pNet = GetNetWorker(szPath, 4);
