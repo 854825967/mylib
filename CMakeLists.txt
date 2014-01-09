@@ -2,7 +2,7 @@
 #author:大T
 #created:2013/4/9
 
-#cmake 最低版本要求，低于2.6 构建过程会被终止
+#cmake 最低版本要求，低于2.6构建过程会被终止
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 #定义工程名称

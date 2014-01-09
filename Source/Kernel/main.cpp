@@ -5,12 +5,14 @@
 #include <vector>
 #include <iostream>
 
+#ifdef WIN32
 class InitDumper {
 public:
     InitDumper() {
         CDumper::GetInstance().SetDumpFileName("Kernel_dump");
     }
 };
+#endif //WIN32
 
 #include "../Net_library/Interface/INet.h"
 
@@ -18,15 +20,15 @@ public:
 INet * pNet = NULL;
 bool DnsParse(const char* domain, char * pStrIP, size_t size) {
     struct hostent * p;
-    if ((p = gethostbyname(domain))==NULL) {
-        return false;
-    }
+//    if ((p = ::gethostname(domain))==NULL) {
+//        return false;
+//    }
 
-    SafeSprintf(pStrIP, size, size, "%u.%u.%u.%u", (unsigned char)p->h_addr_list[0][0],
-        (unsigned char)p->h_addr_list[0][1],
-        (unsigned char)p->h_addr_list[0][2],
-        (unsigned char)p->h_addr_list[0][3]);
-    return true;
+//    SafeSprintf(pStrIP, size, size, "%u.%u.%u.%u", (unsigned char)p->h_addr_list[0][0],
+//        (unsigned char)p->h_addr_list[0][1],
+//        (unsigned char)p->h_addr_list[0][2],
+//        (unsigned char)p->h_addr_list[0][3]);
+//    return true;
 }
 
 struct connectinfo {
@@ -39,7 +41,7 @@ CONNECT_INFO_MAP s_map;
 void Connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
     s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
     if (lTick > 1000) {
-        //ECHO_ERROR("Á¬½ÓºÄÊ±:%ld", ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick);
+        //ECHO_ERROR("è¿žæŽ¥è€—æ—¶:%ld", ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick);
     }
 
     char buf[512];
@@ -64,9 +66,9 @@ void Recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
     s64 lTick = ::GetCurrentTimeTick() - itor->second->lTick;
     if (lTick > 3000) {
         static s32 i = 1;
-        ECHO_ERROR("µ±Ç°×Ü²Ù×÷Êý %d, ×Ü³¬Ê±´ÎÊý%d, ´Ó½âÎöÓòÃûµ½²éÑ¯·þÎñÆ÷³É¹¦Ò»¹²ºÄÊ± %ld ms", s_optCount, i++, lTick);
+        ECHO_ERROR("å½“å‰æ€»æ“ä½œæ•° %d, æ€»è¶…æ—¶æ¬¡æ•°%d, ä»Žè§£æžåŸŸååˆ°æŸ¥è¯¢æœåŠ¡å™¨æˆåŠŸä¸€å…±è€—æ—¶ %ld ms", s_optCount, i++, lTick);
     } else {
-        //ECHO_TRACE("´Ó½âÎöÓòÃûµ½²éÑ¯·þÎñÆ÷³É¹¦Ò»¹²ºÄÊ± %ld ms", lTick);
+        //ECHO_TRACE("ä»Žè§£æžåŸŸååˆ°æŸ¥è¯¢æœåŠ¡å™¨æˆåŠŸä¸€å…±è€—æ—¶ %ld ms", lTick);
     }
 
 }
@@ -79,20 +81,20 @@ bool Connect(connectinfo * pInfo) {
     if (!DnsParse("pay.zstb.android.haohaowan.com", szIP, sizeof(szIP))) {
         s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
         static s32 i = 1;
-        ECHO_ERROR("µ±Ç°²Ù×÷×ÜÊý %d, ½âÎöÓòÃûÊ§°Ü×Ü´ÎÊý%d, ºÄÊ± %ld", s_optCount, i++, lTick);
+        ECHO_ERROR("å½“å‰æ“ä½œæ€»æ•° %d, è§£æžåŸŸåå¤±è´¥æ€»æ¬¡æ•°%d, è€—æ—¶ %ld", s_optCount, i++, lTick);
         return false;
     }
 
     s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
     if (lTick > 1000) {
         static s32 i = 1;
-        ECHO_ERROR("µ±Ç°²Ù×÷×ÜÊý %d, ½âÎöÓòÃûÊ§°Ü×Ü´ÎÊý %d, ºÄÊ± %ld", s_optCount, i++, lTick);
+        ECHO_ERROR("å½“å‰æ“ä½œæ€»æ•° %d, è§£æžåŸŸåå¤±è´¥æ€»æ¬¡æ•° %d, è€—æ—¶ %ld", s_optCount, i++, lTick);
     }
     return pNet->CConnectEx(szIP, 10038, pInfo);
 }
 
 void ConnectBreak(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    //ECHO_TRACE("Á¬½Ó %d ¶Ï¿ª", nConnectID);
+    //ECHO_TRACE("è¿žæŽ¥ %d æ–­å¼€", nConnectID);
     CONNECT_INFO_MAP::iterator ifind = s_map.find(nConnectID);
     if (ifind != s_map.end()) {
         ASSERT(ifind->second == pContext);
@@ -105,7 +107,7 @@ void ConnectedFailed(const s32 nConnectID, const void * pContext, const s32 nSiz
     s_optCount++;
     static s32 i = 1;
     s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
-    ECHO_ERROR("µ±Ç°×Ü²Ù×÷Êý %d, ×ÜÊ§°Ü´ÎÊý%d, Á¬½ÓÊ§°Ü,ºÄÊ±:%ld", s_optCount, i++, lTick);
+    ECHO_ERROR("å½“å‰æ€»æ“ä½œæ•° %d, æ€»å¤±è´¥æ¬¡æ•°%d, è¿žæŽ¥å¤±è´¥,è€—æ—¶:%ld", s_optCount, i++, lTick);
 
     //ASSERT(ifind->second == pContext);
     bool b = Connect((connectinfo *) pContext);
@@ -116,18 +118,20 @@ void ConnectedFailed(const s32 nConnectID, const void * pContext, const s32 nSiz
 
 s32 main(int argc, char * args[]) {
 //     if (argc < 2) {
-//         ECHO_TRACE("ÇëÊäÈëÓòÃûÏÈ....");
+//         ECHO_TRACE("è¯·è¾“å…¥åŸŸåå…ˆ....");
 //         getchar();
 //         return 0;
-//     } 
-    WSADATA wsd;   
+//     }
+#if defined WIN32 || defined WIN64
+    WSADATA wsd;
     ASSERT(WSAStartup(MAKEWORD(2,2), &wsd) == 0);
-
+#endif //defined WIN32 || defined WIN64
     char szPath[512] = {0};
-    SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.dll");
+    SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.so");
     ECHO_TRACE("dll path : %s", szPath);
 
     pNet = GetNetWorker(szPath, 4);
+    ASSERT(pNet);
     pNet->CSetCallBackAddress(CALL_CONNECTED, Connected);
     pNet->CSetCallBackAddress(CALL_CONNECT_FAILED, ConnectedFailed);
     pNet->CSetCallBackAddress(CALL_RECV_DATA, Recv);
