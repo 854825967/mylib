@@ -124,9 +124,9 @@ void CNet::DealConnectEvent(struct iocp_event * pEvent) {
             pEvent->wbuf.len = sizeof(pEvent->buff);
             m_ConnectPool[nConnectID]->pContext = pEvent->p;
             pEvent->p = m_ConnectPool[nConnectID];
-            s32 err;
-            if (ERROR_NO_ERROR != async_recv(pEvent, &err, pEvent->p)) {
-                ASSERT(false);
+            s32 err, code;
+            if (ERROR_NO_ERROR != (code = async_recv(pEvent, &err, pEvent->p))) {
+                ECHO_ERROR("async_recv error %d code %d", err, code);
                 return;
             }
         } else {

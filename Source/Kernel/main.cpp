@@ -2,6 +2,7 @@
 #include "CDumper.h"
 #include "Tools.h"
 #include "CHashMap.h"
+#include "CLock.h"
 #include <vector>
 #include <iostream>
 
@@ -40,10 +41,11 @@ struct connectinfo {
 typedef CHashMap<s32, connectinfo *> CONNECT_INFO_MAP;
 s32 s_optCount = 0;
 CONNECT_INFO_MAP s_map;
+CLockUnit * plock;
 void Connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
     s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
     if (lTick > 1000) {
-        //ECHO_ERROR("è¿žæŽ¥è€—æ—¶:%ld", ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick);
+        //ECHO_ERROR("Á¬½ÓºÄÊ±:%ld", ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick);
     }
 
     char buf[512];
@@ -58,21 +60,23 @@ void Connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
 
     int count = sizeof(unsigned short) + sizeof(unsigned int) + sizeof(unsigned long long);
     pNet->CSend(nConnectID, buf, count);
+
+    CAutoLock lock(plock);
     s_map.insert(make_pair(nConnectID, (connectinfo *)pContext));
 
 }
 
 void Recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
+    CAutoLock lock(plock);
     CONNECT_INFO_MAP::iterator itor = s_map.find(nConnectID);
     ASSERT(itor != s_map.end());
     s64 lTick = ::GetCurrentTimeTick() - itor->second->lTick;
     if (lTick > 3000) {
         static s32 i = 1;
-        ECHO_ERROR("å½“å‰æ€»æ“ä½œæ•° %d, æ€»è¶…æ—¶æ¬¡æ•°%d, ä»Žè§£æžåŸŸååˆ°æŸ¥è¯¢æœåŠ¡å™¨æˆåŠŸä¸€å…±è€—æ—¶ %ld ms", s_optCount, i++, lTick);
+        ECHO_ERROR("µ±Ç°×Ü²Ù×÷Êý %d, ×Ü³¬Ê±´ÎÊý%d, ´Ó½âÎöÓòÃûµ½²éÑ¯·þÎñÆ÷³É¹¦Ò»¹²ºÄÊ± %ld ms", s_optCount, i++, lTick);
     } else {
-        //ECHO_TRACE("ä»Žè§£æžåŸŸååˆ°æŸ¥è¯¢æœåŠ¡å™¨æˆåŠŸä¸€å…±è€—æ—¶ %ld ms", lTick);
+        //ECHO_TRACE("´Ó½âÎöÓòÃûµ½²éÑ¯·þÎñÆ÷³É¹¦Ò»¹²ºÄÊ± %ld ms", lTick);
     }
-
 }
 
 bool Connect(connectinfo * pInfo) {
@@ -83,20 +87,21 @@ bool Connect(connectinfo * pInfo) {
     if (!DnsParse("pay.zstb.android.haohaowan.com", szIP, sizeof(szIP))) {
         s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
         static s32 i = 1;
-        ECHO_ERROR("å½“å‰æ“ä½œæ€»æ•° %d, è§£æžåŸŸåå¤±è´¥æ€»æ¬¡æ•°%d, è€—æ—¶ %ld", s_optCount, i++, lTick);
+        ECHO_ERROR("µ±Ç°²Ù×÷×ÜÊý %d, ½âÎöÓòÃûÊ§°Ü×Ü´ÎÊý%d, ºÄÊ± %ld", s_optCount, i++, lTick);
         return false;
     }
 
     s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
     if (lTick > 1000) {
         static s32 i = 1;
-        ECHO_ERROR("å½“å‰æ“ä½œæ€»æ•° %d, è§£æžåŸŸåå¤±è´¥æ€»æ¬¡æ•° %d, è€—æ—¶ %ld", s_optCount, i++, lTick);
+        ECHO_ERROR("µ±Ç°²Ù×÷×ÜÊý %d, ½âÎöÓòÃûÊ§°Ü×Ü´ÎÊý %d, ºÄÊ± %ld", s_optCount, i++, lTick);
     }
     return pNet->CConnectEx(szIP, 10038, pInfo);
 }
 
 void ConnectBreak(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    //ECHO_TRACE("è¿žæŽ¥ %d æ–­å¼€", nConnectID);
+    //ECHO_TRACE("Á¬½Ó %d ¶Ï¿ª", nConnectID);
+    CAutoLock lock(plock);
     CONNECT_INFO_MAP::iterator ifind = s_map.find(nConnectID);
     if (ifind != s_map.end()) {
         ASSERT(ifind->second == pContext);
@@ -109,7 +114,7 @@ void ConnectedFailed(const s32 nConnectID, const void * pContext, const s32 nSiz
     s_optCount++;
     static s32 i = 1;
     s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
-    ECHO_ERROR("å½“å‰æ€»æ“ä½œæ•° %d, æ€»å¤±è´¥æ¬¡æ•°%d, è¿žæŽ¥å¤±è´¥,è€—æ—¶:%ld", s_optCount, i++, lTick);
+    ECHO_ERROR("µ±Ç°×Ü²Ù×÷Êý %d, ×ÜÊ§°Ü´ÎÊý%d, Á¬½ÓÊ§°Ü,ºÄÊ±:%ld", s_optCount, i++, lTick);
 
     //ASSERT(ifind->second == pContext);
     bool b = Connect((connectinfo *) pContext);
@@ -118,12 +123,21 @@ void ConnectedFailed(const s32 nConnectID, const void * pContext, const s32 nSiz
     }
 }
 
+
+THREAD_FUN CLoop(LPVOID p) {
+    pNet->CLoop(false, 0);
+    return 0;
+}
+
 s32 main(int argc, char * args[]) {
 //     if (argc < 2) {
-//         ECHO_TRACE("è¯·è¾“å…¥åŸŸåå…ˆ....");
+//         ECHO_TRACE("ÇëÊäÈëÓòÃûÏÈ....");
 //         getchar();
 //         return 0;
 //     }
+
+    plock = NEW CLockUnit();
+
 #if defined WIN32 || defined WIN64
     WSADATA wsd;
     ASSERT(WSAStartup(MAKEWORD(2,2), &wsd) == 0);
@@ -142,7 +156,7 @@ s32 main(int argc, char * args[]) {
     pNet->CSetCallBackAddress(CALL_CONNECT_FAILED, ConnectedFailed);
     pNet->CSetCallBackAddress(CALL_RECV_DATA, Recv);
     pNet->CSetCallBackAddress(CALL_CONNECTION_BREAK, ConnectBreak);
-    for (s32 i=0; i<4; i++) {
+    for (s32 i=0; i<2048; i++) {
         connectinfo * pInfo = NEW connectinfo;
         bool b = Connect(pInfo);
         while (!b) {
@@ -150,6 +164,15 @@ s32 main(int argc, char * args[]) {
         }
     }
 
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+
     pNet->CLoop(false, 0);
 	return 0;
 }
+

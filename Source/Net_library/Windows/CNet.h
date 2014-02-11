@@ -4,7 +4,6 @@
 #define CNET_H
 
 #include "INet.h"
-#include "CStream.h"
 #include "CQueue.h"
 #include "Pool.h"
 #include "CConnection.h"

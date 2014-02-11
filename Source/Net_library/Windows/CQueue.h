@@ -13,7 +13,7 @@ public:
     }
 
     void add(struct iocp_event * pEvent) {
-        CAutoLock lock(&m_lock);
+        CAutoLock lock(&m_wlock);
         while (m_queue[m_nWIndex] != NULL) {
             CSleep(10);
         }
@@ -25,6 +25,7 @@ public:
     }
 
     struct iocp_event * read() {//不可在多个线程中使用 谢谢
+        CAutoLock lock(&m_rlock);
         while (m_queue[m_nRIndex] == NULL) {
             CSleep(1);
             return NULL;
@@ -40,7 +41,8 @@ public:
     }
 
 private:
-    CLockUnit m_lock;
+    CLockUnit m_wlock;
+    CLockUnit m_rlock;
     struct iocp_event * m_queue[BUFF_SIZE];
     u32 m_nRIndex;
     u32 m_nWIndex;

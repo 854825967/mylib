@@ -264,27 +264,35 @@ extern "C" {
     }
 
     error_code get_event(OUT struct iocp_event ** ppEvent, OUT s32 * pnError) {
-        DWORD nIOBytes = 0;
+        DWORD nIOBytes;
         BOOL nSucceed;
         s32 nerrno;
-        SOCKET s = INVALID_SOCKET;
+        SOCKET s;
         SetLastError(0);
         if (!s_bInit) {
+            ECHO_ERROR("%s", "iocp_init() first");
             RETURN_RES(ERROR_INIT_IOCP);
         }
-        nSucceed = GetQueuedCompletionStatus(s_hCompletionPort, &nIOBytes, (PULONG_PTR)&s, (LPOVERLAPPED *)ppEvent, s_lWaittiem);
-        if(NULL == *ppEvent) {
-            CSleep(1);
-            RETURN_RES(ERROR_GET_EVENT);
+        while (true) {
+            nIOBytes = 0;
+            s = INVALID_SOCKET;
+            SetLastError(0);
+            nSucceed = GetQueuedCompletionStatus(s_hCompletionPort, &nIOBytes, (PULONG_PTR)&s, (LPOVERLAPPED *)ppEvent, s_lWaittiem);
+            if(NULL == *ppEvent) {
+                CSleep(1);
+                continue;
+            }
+
+            nerrno = GetLastError();
+            if (!nSucceed ) {
+                if (WAIT_TIMEOUT == errno) {
+                    CSleep(1);
+                    continue;
+                }
+            }
+            break;
         }
 
-        nerrno = GetLastError();
-        if (!nSucceed ) {
-            if (WAIT_TIMEOUT == errno) {
-                CSleep(1);
-                RETURN_RES(ERROR_GET_EVENT_TIME_OUT)
-            }
-        }
         (*ppEvent)->nerron = nerrno;
         (*ppEvent)->ioBytes = nIOBytes;
         /*
