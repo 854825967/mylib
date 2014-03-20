@@ -14,19 +14,19 @@ class IKernel;
 
 class IModule {
 public:
-	/*
+    /*
     * Initialize 预备启动回调 (主要用作各模块自己内部做准备)
     *  @param [in] IKernel * pKernel 传入回调的引擎接口
     *  @return 返回值说明回调是否调用成功
     */
     virtual bool Initialize(IKernel * pKernel) = 0;
-	/*
+    /*
     * DelayInitialize 延时启动回调 (主要用作各模块之间的联合启动)
     *  @param [in] IKernel * pKernel 传入回调的引擎接口
     *  @return 返回值说明回调是否调用成功
     */
     virtual bool DelayInitialize(IKernel * pKernel) = 0;
-	/*
+    /*
     * Destroy 模块销毁 (模块销毁数据回收)
     *  @param [in] IKernel * pKernel 传入回调的引擎接口
     *  @return 返回值说明回调是否调用成功

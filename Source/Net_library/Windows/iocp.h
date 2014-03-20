@@ -14,6 +14,7 @@
 #define IOCP_H
 
 #include "iocp_event.h"
+#include "Header.h"
 
 #ifdef __cplusplus
 extern "C" {

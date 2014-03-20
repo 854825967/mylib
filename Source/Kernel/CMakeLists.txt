@@ -7,13 +7,18 @@ IF(UNIX)
     INCLUDE_DIRECTORIES(
         "../Public"
         "./API"
+        "./Core"
+        "./Libaray"
     )
 ENDIF(UNIX)
 
 IF(WIN32)
     INCLUDE_DIRECTORIES(
+        "C:/mysql/include/"
         "../Public"
         "./API"
+        "./Core"
+        "./Libaray"
     )
 ENDIF(WIN32)
 
@@ -21,6 +26,8 @@ IF(WIN64)
     INCLUDE_DIRECTORIES(
         "../Public"
         "./API"
+        "./Core"
+        "./Libaray"
     )
 ENDIF(WIN64)
 
@@ -28,6 +35,8 @@ IF(APPLE)
     INCLUDE_DIRECTORIES(
         "../Public"
         "./API"
+        "./Core"
+        "./Libaray"
     )
 ENDIF(APPLE)
 
@@ -36,18 +45,34 @@ SET(SOURCE_FILES
     "main.cpp"
 )
 
+SET(CORE_FILES
+    "./Core/DBProxy.h"
+    "./Core/DBProxy.cpp"
+)
+
+SET(CORE_INTERFACE
+    "./Core/Interface/ICore.h"
+    "./Core/Interface/IDBProxy.h"
+)
+
+
 SET(API
-	"./API/IKernel.h"
-	"./API/IModule.h"
+    "./API/IKernel.h"
+    "./API/IModule.h"
+    "./API/ITimer.h"
 )
 
 
 SOURCE_GROUP(\\ FILES ${SOURCE_FILES})
+SOURCE_GROUP(Core FILES ${CORE_FILES})
+SOURCE_GROUP(Core\\Interface FILES ${CORE_INTERFACE})
 SOURCE_GROUP(Public FILES ${PUBLIC_FILES})
 SOURCE_GROUP(API FILES ${API})
 
 MESSAGE(STATUS "Public : ${PUBLIC_FILES}")
 MESSAGE(STATUS "API : ${API}")
+MESSAGE(STATUS "Core : ${CORE_FILES}")
+MESSAGE(STATUS "Core/Interface : ${CORE_INTERFACE}")
 
 #相关库文件的目录
 #LINK_DIRECTORIES(
@@ -58,6 +83,8 @@ MESSAGE(STATUS "API : ${API}")
 SET(EXECUTABLE_OUTPUT_PATH "${OUTPUT_PATH}/main")
 ADD_EXECUTABLE(main
     ${SOURCE_FILES}
+    ${CORE_FILES}
+    ${CORE_INTERFACE}
     ${PUBLIC_FILES}
     ${API}
 )

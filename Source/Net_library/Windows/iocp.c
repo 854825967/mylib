@@ -1,5 +1,4 @@
 #if defined WIN32 || defined WIN64
-
 #include "iocp.h"
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +29,7 @@ extern "C" {
 
         if (NULL == pAcceptFun) {
             s32 nError = WSAGetLastError();
-            ECHO_ERROR("Get AcceptEx fun error, error code : %d", nError);
+            LOG_ERROR("Get AcceptEx fun error, error code : %d", nError);
             ASSERT(false);
         }
 
@@ -47,7 +46,7 @@ extern "C" {
             &dwBytes, NULL, NULL);
 
         if (NULL == pConnectFun) {
-            ECHO_ERROR("Get ConnectEx fun error, error code : %d", WSAGetLastError());
+            LOG_ERROR("Get ConnectEx fun error, error code : %d", WSAGetLastError());
             ASSERT(false);
         }
 
@@ -270,7 +269,7 @@ extern "C" {
         SOCKET s;
         SetLastError(0);
         if (!s_bInit) {
-            ECHO_ERROR("%s", "iocp_init() first");
+            LOG_ERROR("%s", "iocp_init() first");
             RETURN_RES(ERROR_INIT_IOCP);
         }
         while (true) {
@@ -327,7 +326,7 @@ extern "C" {
                     s32 nLen = sizeof(struct sockaddr);
                     setsockopt((*ppEvent)->s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (const char*) &s, sizeof(s));
                     if (SOCKET_ERROR == getpeername((*ppEvent)->s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
-                        ECHO_ERROR("%s", "getpeername error");
+                        LOG_ERROR("%s", "getpeername error");
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
                     if (s_hCompletionPort != (CreateIoCompletionPort((HANDLE)((*ppEvent)->s), (HANDLE)s_hCompletionPort, (u_long)(HANDLE)((*ppEvent)->s), 0))) {
@@ -347,7 +346,7 @@ extern "C" {
                     }
 
                     if (SOCKET_ERROR == getpeername(s, (struct sockaddr*)&(*ppEvent)->remote, &nLen)) {
-                        ECHO_ERROR("%s", "getpeername error");
+                        LOG_ERROR("%s", "getpeername error");
                         RETURN_RES(ERROR_GET_PEER_NAME);
                     }
                     RETURN_RES(ERROR_NO_ERROR);

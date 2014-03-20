@@ -26,7 +26,7 @@ typedef s32 (*EVENT_CALL)(EVENT_CALL_ARGS);
     pKernel->AddNetEventCall(type, eventid, call, #call);
 
 class IKernel {
-	/*
+    /*
     * 简要的函数说明文字 
     *  @param [in] param1 参数1说明
     *  @param [out] param2 参数2说明

@@ -3,8 +3,10 @@
 #include "CNet.h"
 #include "Tools.h"
 #include "iocp.h"
+#include "Header.h"
 
 CNet::CNet(const s8 nThreadCount, const s32 nLinkConut, const s32 nWaitMs) {
+    LogModuleInit();
     m_nThreadCount = nThreadCount;
     m_nWaitMs = nWaitMs;
     m_demo = false;
@@ -13,7 +15,7 @@ CNet::CNet(const s8 nThreadCount, const s32 nLinkConut, const s32 nWaitMs) {
     s32 err;
     s32 code = iocp_init(nWaitMs, &err);
     if (code != ERROR_NO_ERROR) {
-        ECHO_ERROR("init iocp error, last code : %d", err);
+        LOG_ERROR("init iocp error, last code : %d", err);
         ASSERT(false);
     }
 
@@ -24,14 +26,14 @@ CNet::CNet(const s8 nThreadCount, const s32 nLinkConut, const s32 nWaitMs) {
 }
 
 CNet::~CNet() {
-
+    LogModuleStop();
 }
 
 bool CNet::CListen(const char * pStrIP, const s32 nPort, const void * pContext, const s32 nBacklog) {
     s32 err;
     s32 code = async_listen(pStrIP, nPort, &err, (char *)pContext, nBacklog);
     if (code != ERROR_NO_ERROR) {
-        ECHO_ERROR("async_listen error, last code : %d", err);
+        LOG_ERROR("async_listen error, last code : %d", err);
         return false;
     }
 
@@ -41,7 +43,7 @@ bool CNet::CListen(const char * pStrIP, const s32 nPort, const void * pContext, 
 bool CNet::CConnectEx(const char * pStrIP, const s32 nPort, const void * pContext) {
     s32 err;
     if (async_connect(pStrIP, nPort, &err, (char *)pContext) != ERROR_NO_ERROR) {
-        ECHO_ERROR("async_connect error, last code : %d", err);
+        LOG_ERROR("async_connect error, last code : %d", err);
         return false;
     }
 
@@ -96,11 +98,11 @@ THREAD_FUN CNet::NetLoop(LPVOID p) {
         pEvent = NULL;
         code = get_event(&pEvent, &err);
         if (ERROR_NO_ERROR == code && pEvent != NULL) {
-            //ECHO_TRACE("event %d, code %d, last error %d", pEvent->event, code, err);
+            //LOG_TRACE("event %d, code %d, last error %d", pEvent->event, code, err);
             pThis->m_queue.add(pEvent);
         } else {
             if (pEvent != NULL) {
-                ECHO_ERROR("event %d, code %d, error %d", pEvent->event, code, err);
+                LOG_ERROR("event %d, code %d, error %d", pEvent->event, code, err);
             }
             CSleep(1);
         }
@@ -126,7 +128,7 @@ void CNet::DealConnectEvent(struct iocp_event * pEvent) {
             pEvent->p = m_ConnectPool[nConnectID];
             s32 err, code;
             if (ERROR_NO_ERROR != (code = async_recv(pEvent, &err, pEvent->p))) {
-                ECHO_ERROR("async_recv error %d code %d", err, code);
+                LOG_ERROR("async_recv error %d code %d", err, code);
                 return;
             }
         } else {
@@ -222,23 +224,25 @@ THREAD_FUN CNet::DemonLoop(LPVOID p) {
     CNet * pThis = (CNet *)p;
     s64 lTick = ::GetCurrentTimeTick();
     while (true) {
-        struct iocp_event * pEvent = pThis->m_queue.read();
-        if (pEvent != NULL) {
-            switch (pEvent->event) {
-            case EVENT_ASYNC_ACCEPT:
-                pThis->DealAcceptEvent(pEvent);
-                break;
-            case EVENT_ASYNC_CONNECT:
-                pThis->DealConnectEvent(pEvent);
-                break;
-            case EVENT_ASYNC_RECV:
-                pThis->DealRecvEvent(pEvent);
-                break;
-            case EVENT_ASYNC_SEND:
-                pThis->DealSendEvent(pEvent);
-                break;
-            default:
-                break;
+        struct iocp_event * pEvent = NULL;
+        if (pThis->m_queue.read(pEvent)) {
+            if (pEvent != NULL) {
+                switch (pEvent->event) {
+                case EVENT_ASYNC_ACCEPT:
+                    pThis->DealAcceptEvent(pEvent);
+                    break;
+                case EVENT_ASYNC_CONNECT:
+                    pThis->DealConnectEvent(pEvent);
+                    break;
+                case EVENT_ASYNC_RECV:
+                    pThis->DealRecvEvent(pEvent);
+                    break;
+                case EVENT_ASYNC_SEND:
+                    pThis->DealSendEvent(pEvent);
+                    break;
+                default:
+                    break;
+                }
             }
         }
 
@@ -254,14 +258,14 @@ THREAD_FUN CNet::DemonLoop(LPVOID p) {
 
 void CNet::CLoop(bool demon, s32 nFramems) {
     if (demon) {
-		m_demo = true;
+        m_demo = true;
         HANDLE hThread = ::CreateThread(NULL, 0, CNet::DemonLoop, (LPVOID)this, 0, NULL);
         CloseHandle(hThread);
     } else {
-		if (m_demo) {
-			ECHO_ERROR("has already looped as demon");
-			return;
-		}
+        if (m_demo) {
+            LOG_ERROR("has already looped as demon");
+            return;
+        }
         m_nFrameMs = nFramems;
         DemonLoop(this);
     }
@@ -274,7 +278,7 @@ void CNet::CRemoteInfo(const s32 nConnectID, const char * & ip, s32 & nPort) {
 
 void CNet::CSetCallBackAddress(const CALLBACK_TYPE eType, const CALL_FUN address) {
     if (eType >= CALL_TYPE_COUNT) {
-        ECHO_ERROR("unknown call type");
+        LOG_ERROR("unknown call type");
         ASSERT(false);
     } else {
         m_szCallAddress[eType] = address;

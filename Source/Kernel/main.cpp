@@ -1,10 +1,13 @@
 #include "MultiSys.h"
 #include "CDumper.h"
 #include "Tools.h"
-#include "CHashMap.h"
-#include "CLock.h"
+#include "TLogger.h"
+#include "CoreHeader.h"
+#include "CTimerEngine.h"
 #include <vector>
 #include <iostream>
+using namespace tlib;
+using namespace core;
 
 #ifdef WIN32
 class InitDumper {
@@ -15,164 +18,115 @@ public:
 };
 #endif //WIN32
 
-#include "../Net_library/Interface/INet.h"
+enum {
+    LOG_TRACE = 0,
+    LOG_DEBUG = 1,
+    LOG_ERROR = 2,
 
-#define MSGID(main,sub) (((main) << 16 ) + (sub))
-INet * pNet = NULL;
-bool DnsParse(const char* domain, char * pStrIP, size_t size) {
-    struct hostent * p;
-#ifdef WIN32
-   if ((p = gethostbyname(domain))==NULL) {
-       return false;
-   }
-
-   SafeSprintf(pStrIP, size, size, "%u.%u.%u.%u", (unsigned char)p->h_addr_list[0][0],
-       (unsigned char)p->h_addr_list[0][1],
-       (unsigned char)p->h_addr_list[0][2],
-       (unsigned char)p->h_addr_list[0][3]);
-#endif //WIN32
-    return true;
-}
-
-struct connectinfo {
-    s64 lTick;
+    //add before this
+    LOG_FILE_COUNT
 };
 
-typedef CHashMap<s32, connectinfo *> CONNECT_INFO_MAP;
-s32 s_optCount = 0;
-CONNECT_INFO_MAP s_map;
-CLockUnit * plock;
-void Connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
-    if (lTick > 1000) {
-        //ECHO_ERROR("连接耗时:%ld", ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick);
-    }
+void testLogger() {
+    TLogger<LOG_FILE_COUNT> logger;
+    logger.Start();
 
-    char buf[512];
-    memset(buf, 0, sizeof(buf));
+    std::string filePath = ::GetAppPath();
+    logger.OpenLogFile(LOG_TRACE, filePath.c_str(), "Trace");
+    logger.OpenLogFile(LOG_DEBUG, filePath.c_str(), "Debug");
+    logger.OpenLogFile(LOG_ERROR, filePath.c_str(), "Error");
 
-    int msgId = MSGID(0x1000,0x43);
-    memcpy(buf+sizeof(unsigned short),(const void*)&msgId,sizeof(int));
-    unsigned long long acid = 0;
-    memcpy(buf+sizeof(unsigned short) + sizeof(unsigned int),&acid,sizeof(unsigned long long));
-    unsigned short len = sizeof(unsigned int) + sizeof(unsigned long long);
-    memcpy(buf,&len,sizeof(unsigned short));
-
-    int count = sizeof(unsigned short) + sizeof(unsigned int) + sizeof(unsigned long long);
-    pNet->CSend(nConnectID, buf, count);
-
-    CAutoLock lock(plock);
-    s_map.insert(make_pair(nConnectID, (connectinfo *)pContext));
-
-}
-
-void Recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    CAutoLock lock(plock);
-    CONNECT_INFO_MAP::iterator itor = s_map.find(nConnectID);
-    ASSERT(itor != s_map.end());
-    s64 lTick = ::GetCurrentTimeTick() - itor->second->lTick;
-    if (lTick > 3000) {
-        static s32 i = 1;
-        ECHO_ERROR("当前总操作数 %d, 总超时次数%d, 从解析域名到查询服务器成功一共耗时 %ld ms", s_optCount, i++, lTick);
-    } else {
-        //ECHO_TRACE("从解析域名到查询服务器成功一共耗时 %ld ms", lTick);
-    }
-}
-
-bool Connect(connectinfo * pInfo) {
-    s_optCount++;
-    char szIP[128] = {0};
-    memset(szIP, 0, sizeof(szIP));
-    pInfo->lTick = ::GetCurrentTimeTick();
-    if (!DnsParse("pay.zstb.android.haohaowan.com", szIP, sizeof(szIP))) {
-        s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
-        static s32 i = 1;
-        ECHO_ERROR("当前操作总数 %d, 解析域名失败总次数%d, 耗时 %ld", s_optCount, i++, lTick);
-        return false;
-    }
-
-    s64 lTick = ::GetCurrentTimeTick() - pInfo->lTick;
-    if (lTick > 1000) {
-        static s32 i = 1;
-        ECHO_ERROR("当前操作总数 %d, 解析域名失败总次数 %d, 耗时 %ld", s_optCount, i++, lTick);
-    }
-    return pNet->CConnectEx(szIP, 10038, pInfo);
-}
-
-void ConnectBreak(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    //ECHO_TRACE("连接 %d 断开", nConnectID);
-    CAutoLock lock(plock);
-    CONNECT_INFO_MAP::iterator ifind = s_map.find(nConnectID);
-    if (ifind != s_map.end()) {
-        ASSERT(ifind->second == pContext);
-        Connect((connectinfo *) pContext);
-        s_map.erase(ifind);
-    }
-}
-
-void ConnectedFailed(const s32 nConnectID, const void * pContext, const s32 nSize) {
-    s_optCount++;
-    static s32 i = 1;
-    s64 lTick = ::GetCurrentTimeTick() - ((const connectinfo *)pContext)->lTick;
-    ECHO_ERROR("当前总操作数 %d, 总失败次数%d, 连接失败,耗时:%ld", s_optCount, i++, lTick);
-
-    //ASSERT(ifind->second == pContext);
-    bool b = Connect((connectinfo *) pContext);
-    while (!b) {
-        b = Connect((connectinfo *) pContext);
-    }
-}
-
-
-THREAD_FUN CLoop(LPVOID p) {
-    pNet->CLoop(false, 0);
-    return 0;
-}
-
-s32 main(int argc, char * args[]) {
-//     if (argc < 2) {
-//         ECHO_TRACE("请输入域名先....");
-//         getchar();
-//         return 0;
-//     }
-
-    plock = NEW CLockUnit();
-
-#if defined WIN32 || defined WIN64
-    WSADATA wsd;
-    ASSERT(WSAStartup(MAKEWORD(2,2), &wsd) == 0);
-#endif //defined WIN32 || defined WIN64
-    char szPath[512] = {0};
-#ifdef WIN32
-    SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.dll");
-#elif defined linux
-    SafeSprintf(szPath, sizeof(szPath), "%s/%s", ::GetAppPath(), "libnet.so");
-#endif //WIN32
-    ECHO_TRACE("dll path : %s", szPath);
-
-    pNet = GetNetWorker(szPath, 4);
-    ASSERT(pNet);
-    pNet->CSetCallBackAddress(CALL_CONNECTED, Connected);
-    pNet->CSetCallBackAddress(CALL_CONNECT_FAILED, ConnectedFailed);
-    pNet->CSetCallBackAddress(CALL_RECV_DATA, Recv);
-    pNet->CSetCallBackAddress(CALL_CONNECTION_BREAK, ConnectBreak);
-    for (s32 i=0; i<2048; i++) {
-        connectinfo * pInfo = NEW connectinfo;
-        bool b = Connect(pInfo);
-        while (!b) {
-            b = Connect(pInfo);
+    s32 i = 0;
+    while (true) {
+        s8 type = i++%LOG_FILE_COUNT;
+        logger.Log(type, "妈妈说日志一定要长,单挑一定要非常长,这样才能测试出数据稳不稳定,不知道妈妈说的对不对,反正我信了...");
+        if (type = LOG_ERROR) {
+            CSleep(1);
         }
     }
 
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
-    ::CreateThread(NULL, 0, CLoop, (LPVOID)NULL, 0, NULL);
+    logger.Stop();
+}
 
-    pNet->CLoop(false, 0);
-	return 0;
+class TestTimerHandler : public ITimerHandler {
+    virtual s32 OnTimer(const s32 id) {
+        switch (id)
+        {
+        case 4:
+            CSleep(10);
+            break;
+        case 5:
+            CSleep(20);
+            break;
+        case 6:
+            CSleep(30);
+            break;
+        case 7:
+            CSleep(10);
+            break;
+        default:
+            break;
+        }
+        return 0;
+    }
+};
+
+s32 timetick[4] = {1000, 2000, 3000, 4000};
+
+void testCTimerEngine() {
+    ITimerEngine * pTimerEngine = NEW CTimerEngine;
+    TestTimerHandler timerHandler;
+    pTimerEngine->SetTimer(1, 1000, 1, &timerHandler, "Test TimerHandler 1_1");
+    pTimerEngine->KillTimer(1, &timerHandler);
+    pTimerEngine->SetTimer(1, 1000, 1, &timerHandler, "Test TimerHandler 1_2");
+    pTimerEngine->SetTimer(2, 1000, 1, &timerHandler, "Test TimerHandler 2");
+    pTimerEngine->KillTimer(&timerHandler);
+
+    pTimerEngine->SetTimer(4, timetick[0], 0, &timerHandler, "定时器 4 间隔时间1000毫秒 执行4次");
+    pTimerEngine->SetTimer(5, timetick[1], 0, &timerHandler, "定时器 5 间隔时间2000毫秒 执行5次");
+    pTimerEngine->SetTimer(6, timetick[2], 0, &timerHandler, "定时器 6 间隔时间3000毫秒 执行6次");
+    pTimerEngine->SetTimer(7, timetick[3], 0, &timerHandler, "定时器 7 间隔时间4000毫秒 执行7次");
+
+    while (true) {
+        pTimerEngine->OnTimer(100);
+    }
+
+}
+
+void testHashMap() {
+    CHashMap<s32, s32> testmap;
+    for (s32 i=0; i<10; i++) {
+        testmap.insert(make_pair(i, i));
+    }
+    CHashMap<s32, s32>::iterator itor = testmap.begin();
+    CHashMap<s32, s32>::iterator iend = testmap.end();
+    s32 n = 0;
+    while (itor != iend) {
+        if (n%3 == 0) {
+            itor = testmap.erase(itor);
+            n++;
+            continue;
+        }
+        itor++;
+        n++;
+    }
+    itor = testmap.begin();
+    iend = testmap.end();
+
+    while (itor != iend) {
+        printf("%d\n", itor->second);
+        itor ++;
+    }
+}
+
+s32 main(int argc, char * args[]) {
+    testHashMap();
+    core::CoreHeaderInit();
+
+    testCTimerEngine();
+
+    core::CoreHeaderRelease();
+    CSleep(1000);
+    return 0;
 }
 

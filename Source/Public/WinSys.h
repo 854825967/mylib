@@ -24,7 +24,7 @@
 #pragma comment(lib, "shlwapi.lib")
 
 #define CSleep(n) Sleep(n)
-#define SafeSprintf _snprintf_s
+#define SafeSprintf sprintf_s
 #define ThreadID DWORD
 #define THREAD_FUN DWORD WINAPI
 typedef HANDLE CHandle;
@@ -46,7 +46,7 @@ extern "C" {
     memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_GREEN); \
-    printf("[info] %s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
+    printf("[info] %s|%d|%s>>>%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_INTENSITY); \
 }
 
@@ -55,7 +55,7 @@ extern "C" {
     memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN); \
-    printf("[warn]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
+    printf("[warn]%s|%d|%s>>>%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_INTENSITY); \
 }
 
@@ -64,7 +64,7 @@ extern "C" {
     memset(_log, 0, sizeof(_log)); \
     SafeSprintf(_log, sizeof(_log), format, ##__VA_ARGS__); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_RED); \
-    printf("[error]%s|%d|%s\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
+    printf("[error]%s|%d|%s>>>%s\n", __FILE__, __LINE__, __FUNCTION__, _log); \
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_INTENSITY); \
 }
 

@@ -48,8 +48,6 @@ SET(WINDOWS_NET_FILES
     "./Windows/CConnection.h"
     "./Windows/CNet.h"
     "./Windows/CNet.cpp"
-    "./Windows/CQueue.h"
-    "./Windows/event_queue.h"
     "./Windows/iocp.h"
     "./Windows/iocp.c"
     "./Windows/iocp_event.h"
@@ -79,6 +77,8 @@ SET(LIBNET_INTERFACE_FILES
 SET(SUBUNIT_FILES
     "Subunit/CInetAddress.h"
     "Subunit/CInetAddress.cpp"
+    "Subunit/Header.h"
+    "Subunit/Header.cpp"
 )
 
 SOURCE_GROUP(\\ FILES ${SOURCE_FILES})

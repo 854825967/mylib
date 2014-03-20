@@ -4,8 +4,8 @@
 #define CNET_H
 
 #include "INet.h"
-#include "CQueue.h"
-#include "Pool.h"
+#include "TQueue.h"
+#include "TPool.h"
 #include "CConnection.h"
 
 class CNet : public INet {
@@ -49,8 +49,8 @@ private:
     s64 m_nFrameMs;
     s32 m_nThreadCount;
     CALL_FUN m_szCallAddress[CALL_TYPE_COUNT];
-    POOL<CConnection, true, 8192> m_ConnectPool;
-    CQueue m_queue;
+    tlib::TPOOL<CConnection, true, 8192> m_ConnectPool;
+    tlib::TQueue<struct iocp_event *, true, 8192> m_queue;
     bool m_demo;
 };
 

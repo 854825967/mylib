@@ -3,6 +3,7 @@
 
 #if defined WIN32 || defined WIN64
 #include <hash_map>
+using namespace std;
 using namespace stdext;
 #define CHashMap hash_map
 #elif defined linux

@@ -4,43 +4,56 @@
 #define WINTOOLS_H
 #include "MultiSys.h"
 #include <string>
-using namespace std;
 
 inline ThreadID GetCurrentThreadID() {
     return ::GetCurrentThreadId();
 }
 
-inline u64 GetCurrentTimeTick() {
+inline s64 GetCurrentTimeTick() {
     SYSTEMTIME wtm;
     GetLocalTime(&wtm);
     struct tm tTm;
     tTm.tm_year     = wtm.wYear - 1900;
-    tTm.tm_mon      = wtm.wMonth - 1;
+    tTm.tm_mon      = wtm.wMonth;
     tTm.tm_mday     = wtm.wDay;
     tTm.tm_hour     = wtm.wHour;
     tTm.tm_min      = wtm.wMinute;
     tTm.tm_sec      = wtm.wSecond;
     tTm.tm_isdst    = -1;
-    return (u64)mktime(&tTm) * 1000 + (u64)wtm.wMilliseconds;
+    return (s64)mktime(&tTm) * 1000 + (s64)wtm.wMilliseconds;
 }
 
-inline string GetCurrentTimeString() {
+inline s64 GetTimeTickOfDayBeginning() {
+    SYSTEMTIME wtm;
+    GetLocalTime(&wtm);
+    struct tm tTm;
+    tTm.tm_year     = wtm.wYear - 1900;
+    tTm.tm_mon      = wtm.wMonth;
+    tTm.tm_mday     = wtm.wDay;
+    tTm.tm_hour     = 0;
+    tTm.tm_min      = 0;
+    tTm.tm_sec      = 0;
+    tTm.tm_isdst    = -1;
+    return (s64)mktime(&tTm) * 1000 + (s64)wtm.wMilliseconds;
+}
+
+inline std::string GetCurrentTimeString(const char * format = "%4d-%02d-%02d %02d:%02d:%02d") {
     char strtime[64] = {0};
     SYSTEMTIME time;
     GetLocalTime(&time);
-    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d",
+    SafeSprintf(strtime, sizeof(strtime), format,
         time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
     return strtime;
 }
 
-inline string GetTimeString(const u64 ntick) {
+inline std::string GetTimeString(const s64 ntick, const char * format = "%4d-%02d-%02d %02d:%02d:%02d") {
     struct tm _tm;
     time_t lt;
     char strtime[64];
     lt = ntick/1000;
     errno_t nerror = localtime_s(&_tm, &lt); //UTC
-    printf("%d\n", nerror);
-    SafeSprintf(strtime, sizeof(strtime), "%4d-%d-%d %d:%d:%d",
+    ASSERT(0 == nerror);
+    SafeSprintf(strtime, sizeof(strtime), format,
         _tm.tm_year + 1900, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
     return strtime;
 }
@@ -77,8 +90,7 @@ inline bool GetConnectExFun(LPFN_CONNECTEX & connectfun) {
     return true;
 }
 
-inline const char * GetAppPath()
-{
+inline const char * GetAppPath() {
     static char * pStr = NULL;
 
     if (NULL == pStr)
@@ -91,8 +103,7 @@ inline const char * GetAppPath()
     return pStr;
 }
 
-inline void CopyString(char * buf, size_t len, const char * str)
-{
+inline void CopyString(char * buf, size_t len, const char * str) {
     const size_t SIZE1 = ::strlen(str) + 1;
 
     if (SIZE1 <= len)
@@ -111,20 +122,20 @@ inline u32 StringAsInt(const char * value) {
     return atoi(value);
 }
 
-inline string IntAsString(const u32 value) {
+inline std::string IntAsString(const u32 value) {
     char str[32];
     memset(str, 0, sizeof(str));
     SafeSprintf(str, sizeof(str), "%d", value);
-    return string(str);
+    return str;
 }
 
-inline string StringReplace(const char * pString, const char * pSrc, const char * pReplace) {
+inline std::string StringReplace(const char * pString, const char * pSrc, const char * pReplace) {
     if (NULL == pString || NULL == pSrc || NULL == pReplace) {
         ASSERT(false);
         return NULL;
     }
 
-    string strSrc = pString;
+    std::string strSrc = pString;
     char * pChSrc = (char *)strSrc.c_str();
     int nOldLen = strlen(pChSrc);
     int nSrcLen = strlen(pSrc);
@@ -153,22 +164,22 @@ inline string StringReplace(const char * pString, const char * pSrc, const char 
     return pChSrc;
 }
 
-inline string GBKToUTF8(const char * pStrGBK) {
-	string strOutUTF8 = "";
-	wchar_t * pStrWChar = NULL;
-	int n = MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, NULL, 0);
-	pStrWChar = new wchar_t[n];
-	MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, pStrWChar, n);
-	n = WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, NULL, 0, NULL, NULL);
-	char * pStrChar = new char[n];
-	WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, pStrChar, n, NULL, NULL);
-	strOutUTF8 = pStrChar;
-	delete[] pStrChar;
-	delete[] pStrWChar;
-	return strOutUTF8;
+inline std::string GBKToUTF8(const char * pStrGBK) {
+    std::string strOutUTF8 = "";
+    wchar_t * pStrWChar = NULL;
+    int n = MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, NULL, 0);
+    pStrWChar = new wchar_t[n];
+    MultiByteToWideChar(CP_ACP, 0, pStrGBK, -1, pStrWChar, n);
+    n = WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, NULL, 0, NULL, NULL);
+    char * pStrChar = new char[n];
+    WideCharToMultiByte(CP_UTF8, 0, pStrWChar, -1, pStrChar, n, NULL, NULL);
+    strOutUTF8 = pStrChar;
+    delete[] pStrChar;
+    delete[] pStrWChar;
+    return strOutUTF8;
 }
 
-inline string UTF8ToGBK(const char * pStrUtf8) {
+inline std::string UTF8ToGBK(const char * pStrUtf8) {
     int len=MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)pStrUtf8, -1, NULL,0);
     wchar_t * wszGBK = NEW wchar_t[len];
     memset(wszGBK, 0, len);
@@ -178,7 +189,7 @@ inline string UTF8ToGBK(const char * pStrUtf8) {
     char *szGBK=NEW char[len + 1];
     memset(szGBK, 0, len + 1);
     WideCharToMultiByte (CP_ACP, 0, (LPWSTR)wszGBK, -1, szGBK, len, NULL,NULL);
-    string temp(szGBK);
+    std::string temp(szGBK);
     delete[] szGBK;
     delete[] wszGBK;
     return temp;
