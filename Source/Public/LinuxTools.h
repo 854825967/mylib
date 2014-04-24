@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <errno.h>
 
-inline u64 GetCurrentTimeTick() {
+inline s64 GetCurrentTimeTick() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000 + tv.tv_usec/1000;

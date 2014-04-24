@@ -5,7 +5,7 @@
 #include "iocp.h"
 #include "Header.h"
 
-CNet::CNet(const s8 nThreadCount, const s32 nLinkConut, const s32 nWaitMs) {
+CNet::CNet(const s8 nThreadCount, const s32 nWaitMs) {
     LogModuleInit();
     m_nThreadCount = nThreadCount;
     m_nWaitMs = nWaitMs;
@@ -78,10 +78,9 @@ void CNet::CSend(const s32 nConnectID, const void * pData, const s32 nSize) {
 bool CNet::CClose(const s32 nConnectID) {
     CConnection * pCConnection = m_ConnectPool[nConnectID];
     pCConnection->bShutdown = true;
-    if (0 == pCConnection->stream.size()) {
-        shutdown(pCConnection->s, SD_BOTH);
-    }
-
+//     if (0 == pCConnection->stream.size()) {
+//         shutdown(pCConnection->s, SD_BOTH);
+//     }
     return true;
 }
 
@@ -128,12 +127,14 @@ void CNet::DealConnectEvent(struct iocp_event * pEvent) {
             pEvent->p = m_ConnectPool[nConnectID];
             s32 err, code;
             if (ERROR_NO_ERROR != (code = async_recv(pEvent, &err, pEvent->p))) {
+                m_szCallAddress[CALL_CONNECT_FAILED](-1, pEvent->p, 0);
+                SafeShutdwon(pEvent, SD_BOTH);
                 LOG_ERROR("async_recv error %d code %d", err, code);
                 return;
             }
         } else {
             m_szCallAddress[CALL_CONNECT_FAILED](-1, pEvent->p, 0);
-            safe_close(pEvent);
+            SafeShutdwon(pEvent, SD_BOTH);
         }
 
     }
@@ -161,36 +162,39 @@ void CNet::DealAcceptEvent(struct iocp_event * pEvent) {
             s32 err;
             if (ERROR_NO_ERROR != async_recv(pEvent, &err, pEvent->p)) {
                 ASSERT(false);
+                SafeShutdwon(pEvent, SD_BOTH);
                 return;
             }
         } else {
-            safe_close(pEvent);
+            ASSERT(false);
+            SafeShutdwon(pEvent, SD_BOTH);
         }
     }
 }
 
 void CNet::DealRecvEvent(struct iocp_event * pEvent) {
-    if (ERROR_SUCCESS == pEvent->nerron) {
-        CConnection * pCConnection = (CConnection *) (pEvent->p);
-        if (0 == pEvent->ioBytes) {
+    CConnection * pCConnection = (CConnection *) (pEvent->p);
+    if (ERROR_SUCCESS == pEvent->nerron && pEvent->ioBytes != 0) {
+        m_szCallAddress[CALL_RECV_DATA](m_ConnectPool.QueryID(pCConnection), pEvent->wbuf.buf, pEvent->ioBytes);
+        if (pCConnection->bShutdown) {
             m_szCallAddress[CALL_CONNECTION_BREAK](m_ConnectPool.QueryID(pCConnection), pCConnection->pContext, 0);
-            m_ConnectPool.Recover(pCConnection);
-            safe_shutdown(pEvent);
-            safe_close(pEvent);
-        } else {
-            m_szCallAddress[CALL_RECV_DATA](m_ConnectPool.QueryID(pCConnection), pEvent->wbuf.buf, pEvent->ioBytes);
-            pEvent->event = EVENT_ASYNC_RECV;
-            pEvent->wbuf.buf = pEvent->buff;
-            pEvent->wbuf.len = sizeof(pEvent->buff);
-            s32 err;
-            if (ERROR_NO_ERROR != async_recv(pEvent, &err, pEvent->p)) {
-                ASSERT(false);
-                return;
-            }
+            SafeShutdwon(pEvent, SD_RECEIVE);
+            return;
+        }
+
+        pEvent->event = EVENT_ASYNC_RECV;
+        pEvent->wbuf.buf = pEvent->buff;
+        pEvent->wbuf.len = sizeof(pEvent->buff);
+        s32 err;
+        if (ERROR_NO_ERROR != async_recv(pEvent, &err, pEvent->p)) {
+            ASSERT(false);
+            m_szCallAddress[CALL_CONNECTION_BREAK](m_ConnectPool.QueryID(pCConnection), pCConnection->pContext, 0);
+            SafeShutdwon(pEvent, SD_RECEIVE);
+            return;
         }
     } else {
-        safe_shutdown(pEvent);
-        safe_close(pEvent);
+        m_szCallAddress[CALL_CONNECTION_BREAK](m_ConnectPool.QueryID(pCConnection), pCConnection->pContext, 0);
+        SafeShutdwon(pEvent, SD_RECEIVE);
     }
 }
 
@@ -201,22 +205,19 @@ void CNet::DealSendEvent(struct iocp_event * pEvent) {
         s32 nSize = pCConnection->stream.size();
         if (0 == nSize) {
             if (pCConnection->bShutdown) {
-                safe_shutdown(pEvent);
+                SafeShutdwon(pEvent, SD_SEND);
             }
-            free_event(pEvent);
         } else {
             s32 err;
             pEvent->wbuf.buf = (char *)pCConnection->stream.buff();
             pEvent->wbuf.len = nSize;
             if (ERROR_NO_ERROR != async_send(pEvent, &err, pEvent->p)) {
                 ASSERT(false);
-                safe_shutdown(pEvent);
-                safe_close(pEvent);
+                SafeShutdwon(pEvent, SD_SEND);
             }
         }
     } else {
-        safe_shutdown(pEvent);
-        safe_close(pEvent);
+        SafeShutdwon(pEvent, SD_SEND);
     }
 }
 

@@ -41,8 +41,8 @@ public:
     *  @param [in] const s32 nRequestID 请求ID
     *  @param [in] const s32 nRequesterID 请求者ID用于负载均衡
     */
-    virtual s32 OnDBRet(IKernel * pKernel, const s32 nIndex, const s32 nRequestID, const s64 nRequesterID, 
-        const void * pInData, const s32 nInLen, const void * pOutData, const s32 nOutLen) = 0;
+//     virtual s32 OnDBRet(IKernel * pKernel, const s32 nIndex, const s32 nRequestID, const s64 nRequesterID, 
+//         const void * pInData, const s32 nInLen, const void * pOutData, const s32 nOutLen) = 0;
 
     //virtual void OnDBError(IKernel * pKernel, const s32 nIndex, const s32 nRequestID, ) = 0;
 
@@ -76,12 +76,13 @@ public:
         return m_pName;
     }
 
+    static IKernel * s_pKernel;
 private:
     IModule * m_pNextModule;
     char m_pName[MAC_MODULE_NAME_LENGTH];
 };
 
-extern IModule * g_pModule = NULL;
+static IModule * g_pModule = NULL;
 #define CREATE_MODULE(name) \
 class factroy##name {    \
 public:    \
@@ -96,6 +97,7 @@ factroy##name factroy##name(g_pModule);
 
 
 #define GET_DLL_ENTRANCE \
+    IKernel * IModule::s_pKernel = NULL; \
     extern "C" __declspec(dllexport) IModule * __cdecl GetLogicModule() {    \
         return g_pModule; \
     } \
@@ -104,8 +106,8 @@ factroy##name factroy##name(g_pModule);
     }
 
 
-#define NAME_OF_GET_LOGIC_FUN "GetLogicModule"
-#define GET_LOGIC_FUN GetLogicModule
+#define FUN_NAME_GETLOGICMODULE "GetLogicModule"
+typedef IModule * (__cdecl *GET_LOGIC_MODULE)();
 
 #endif  //IModule_H
 /** @} */ // 模块结尾

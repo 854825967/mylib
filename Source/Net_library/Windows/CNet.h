@@ -40,6 +40,8 @@ private:
     void DealRecvEvent(struct iocp_event * pEvent);
     void DealSendEvent(struct iocp_event * pEvent);
 
+    void SafeShutdwon(struct iocp_event * pEvent, s32 sdtags);
+
 private:
     static THREAD_FUN DemonLoop(LPVOID p);
     static THREAD_FUN NetLoop(LPVOID p);

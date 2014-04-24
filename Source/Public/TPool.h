@@ -42,7 +42,7 @@ namespace tlib {
             static s32 test = 0;
             test ++;
     #endif //_DEBUG
-            UNIT_POOL::iterator itor = m_list.begin();
+            typename UNIT_POOL::iterator itor = m_list.begin();
             if (itor != m_list.end()) {
                 p = *itor;
                 m_list.erase(itor);
@@ -73,7 +73,7 @@ namespace tlib {
             static s32 test = 0;
             test ++;
     #endif //_DEBUG
-            UNIT_POOL::iterator itor = m_list.begin();
+            typename UNIT_POOL::iterator itor = m_list.begin();
             if (itor != m_list.end()) {
                 p = *itor;
                 m_list.erase(itor);
@@ -110,9 +110,9 @@ namespace tlib {
             static s32 test = 0;
             test ++;
     #endif //_DEBUG
-            UNIT_POOL::iterator ibegin = m_list.begin();
-            UNIT_POOL::iterator iend = m_list.end();
-            UNIT_POOL::iterator itor = ::find(ibegin, iend, pUnit);
+            typename UNIT_POOL::iterator ibegin = m_list.begin();
+            typename UNIT_POOL::iterator iend = m_list.end();
+            typename UNIT_POOL::iterator itor = ::find(ibegin, iend, pUnit);
             if (itor != iend) {
     #ifdef _DEBUG
                 test --;

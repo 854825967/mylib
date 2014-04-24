@@ -1,0 +1,365 @@
+#include "MultiSys.h"
+#include "CDumper.h"
+#include "Tools.h"
+#include "TLogger.h"
+#include "CoreHeader.h"
+#include "CTimerEngine.h"
+#include "CHashMap.h"
+#include "TCallBack.h"
+#include <vector>
+#include <iostream>
+using namespace tlib;
+using namespace core;
+
+#if defined WIN32 || defined WIN64
+class InitDumper {
+public:
+    InitDumper() {
+        CDumper::GetInstance().SetDumpFileName("Kernel_dump");
+    }
+};
+#endif //defined WIN32 || defined WIN64
+
+enum {
+    LOG_TRACE = 0,
+    LOG_DEBUG = 1,
+    LOG_ERROR = 2,
+
+    //add before this
+    LOG_FILE_COUNT
+};
+
+void testLogger() {
+    TLogger<LOG_FILE_COUNT> * p = NEW TLogger<LOG_FILE_COUNT>;
+    p->Start();
+
+    std::string filePath = ::GetAppPath();
+    p->OpenLogFile(LOG_TRACE, filePath.c_str(), "Trace");
+    p->OpenLogFile(LOG_DEBUG, filePath.c_str(), "Debug");
+    p->OpenLogFile(LOG_ERROR, filePath.c_str(), "Error");
+
+    s32 i = 0;
+    while (true) {
+        s8 type = i++%LOG_FILE_COUNT;
+        char log[1024];
+        memset(log, 0, sizeof(log));
+        SafeSprintf(log, sizeof(log), "妈妈说日志一定要长,单条一定要非常长,这样才能测试出数据稳不稳定,不知道妈妈说的对不对,反正我信了... %d", i);
+        p->Log(LOG_TRACE, log);
+        if (type = LOG_ERROR) {
+            CSleep(1);
+        }
+        if (i == 100000) {
+            break;
+        }
+    }
+
+    p->Stop();
+
+    delete p;
+}
+
+class TestTimerHandler : public ITimerHandler {
+    virtual s32 OnTimer(const s32 id) {
+        switch (id) {
+        case 4: {
+            static s32 i = 1;
+            ECHO_TRACE("定时器4执行了%d次", i++);
+            break;
+                }
+        case 5: {
+            static s32 i = 1;
+            ECHO_TRACE("定时器5执行了%d次", i++);
+            break;
+                }
+        case 6: {
+            static s32 i = 1;
+            ECHO_TRACE("定时器6执行了%d次", i++);
+            break;
+                }
+        case 7: {
+            static s32 i = 1;
+            ECHO_TRACE("定时器7执行了%d次", i++);
+            break;
+                }
+        default:
+            break;
+        }
+        return 0;
+    }
+};
+
+s32 timetick[4] = {1000, 2000, 3000, 4000};
+
+void testCTimerEngine() {
+    ITimerEngine * pTimerEngine = NEW CTimerEngine;
+    TestTimerHandler timerHandler;
+    pTimerEngine->SetTimer(1, 1000, 1, &timerHandler, "Test TimerHandler 1_1");
+    pTimerEngine->KillTimer(1, &timerHandler);
+    pTimerEngine->SetTimer(1, 1000, 1, &timerHandler, "Test TimerHandler 1_2");
+    pTimerEngine->SetTimer(2, 1000, 1, &timerHandler, "Test TimerHandler 2_1");
+    pTimerEngine->KillTimer(&timerHandler);
+
+    pTimerEngine->SetTimer(4, timetick[0], 20, &timerHandler, "定时器 4");
+    pTimerEngine->SetTimer(5, timetick[1], 5, &timerHandler, "定时器 5");
+    pTimerEngine->SetTimer(6, timetick[2], 10, &timerHandler, "定时器 6");
+    pTimerEngine->SetTimer(7, timetick[3], 2, &timerHandler, "定时器 7");
+
+    while (true) {
+        pTimerEngine->OnTimer(100);
+        CSleep(1);
+    }
+}
+
+void testHashMap() {
+    CHashMap<s32, s32> testmap;
+    for (s32 i=0; i<10; i++) {
+        testmap.insert(make_pair(i, i));
+    }
+    CHashMap<s32, s32>::iterator itor = testmap.begin();
+    CHashMap<s32, s32>::iterator iend = testmap.end();
+    s32 n = 0;
+    while (itor != iend) {
+        if (n%3 == 0) {
+            itor = testmap.erase(itor);
+            n++;
+            continue;
+        }
+        itor++;
+        n++;
+    }
+    itor = testmap.begin();
+    iend = testmap.end();
+
+    while (itor != iend) {
+        printf("%d\n", itor->second);
+        itor ++;
+    }
+}
+
+enum eCallID {
+    CALL_TEST,
+};
+
+bool test(const char * p) {
+    ECHO("%s", p);
+    CSleep(5);
+    return true;
+}
+
+typedef bool (*fun)(const char *);
+void testCallBack() {
+    TCallBack<s32, fun, const char *> callback;
+    callback.RegisterCall(CALL_TEST, test, "main::testCallBack");
+
+    callback.Call(CALL_TEST, "hello world1");
+    callback.Call(CALL_TEST, "hello world2");
+
+    callback.UnRgsCall(CALL_TEST, test);
+
+    callback.Call(CALL_TEST, "hello world3");
+}
+
+
+
+#include "Windows/CNet.h"
+INet * g_pNet = NULL;
+
+CHashMap<s32, s32> g_LinkMap;
+
+void connected(const s32 nConnectID, const void * pContext, const s32 nSize) {
+    ECHO("connected, %d, %s", nConnectID, (char *)pContext);
+}
+
+void newconnection(const s32 nConnectID, const void * pContext, const s32 nSize) {
+    ASSERT(g_LinkMap.find(nConnectID) == g_LinkMap.end());
+    g_LinkMap.insert(make_pair(nConnectID, nConnectID));
+    ECHO("newconnection, %d, %s, global count %d", nConnectID, (char *)pContext, g_LinkMap.size());
+    const char * ip = NULL;
+    s32 nPort = 0;
+    g_pNet->CRemoteInfo(nConnectID, ip, nPort);
+    char msg[256];
+    memset(msg, 0, sizeof(msg));
+    SafeSprintf(msg, sizeof(msg), "Your IP is %s", ip);
+    g_pNet->CSend(nConnectID, msg, strlen(msg) + 1);
+}
+
+void recv(const s32 nConnectID, const void * pContext, const s32 nSize) {
+    ECHO("connection %d recv data %s len %d", nConnectID, (char *) pContext, nSize);
+
+    if (0 == strcmp((const char *)pContext, "stop")) {
+
+        CHashMap<s32, s32>::iterator itor = g_LinkMap.begin();
+        CHashMap<s32, s32>::iterator iend = g_LinkMap.end();
+        while (itor != iend) {
+            g_pNet->CSend(itor->second, "shutdown", 9);
+            g_pNet->CClose(itor->second);
+            itor ++;
+        }
+        return;
+    }
+
+    g_pNet->CSend(nConnectID, "hello client", strlen("hello client") + 1);
+}
+
+void connectfailed(const s32 nConnectID, const void * pContext, const s32 nSize) {
+    ECHO("connectfailed, %d, %s", nConnectID, (char *)pContext);
+}
+
+void connectionbreak(const s32 nConnectID, const void * pContext, const s32 nSize) {
+//     CHashMap<s32, s32>::iterator itor = g_LinkMap.find(nConnectID);
+//     if (itor != g_LinkMap.end()) {
+//         ECHO("connectionbreak, %d, %s, current count %d", nConnectID, (char *)pContext, g_LinkMap.size());
+//         g_LinkMap.erase(itor);
+//     } else {
+//         ASSERT(false);
+//     }
+//     if (g_LinkMap.size() == 0) {
+//         g_pNet->CStop();
+//     }
+}
+
+void testCoreNet() {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2,2), &wsaData);// 初始化Windows Socket 2.2
+
+    g_pNet = NEW CNet;
+    g_pNet->CNetInitialize(8, 10);
+
+    g_pNet->CSetCallBackAddress(CALL_CONNECTED, connected);
+    g_pNet->CSetCallBackAddress(CALL_CONNECT_FAILED, connectfailed);
+    g_pNet->CSetCallBackAddress(CALL_REMOTE_CONNECTED, newconnection);
+    g_pNet->CSetCallBackAddress(CALL_CONNECTION_BREAK, connectionbreak);
+    g_pNet->CSetCallBackAddress(CALL_RECV_DATA, recv);
+
+    g_pNet->CListen("0.0.0.0", 10038, "0.0.0.0:10038");
+    //g_pNet->CConnectEx("10.10.0.108", 10038, "223.246.252.216:10038");
+    while (1) {
+        g_pNet->CLoop(false, 1000);
+
+        CHashMap<s32, s32>::iterator itor = g_LinkMap.begin();
+        while (itor != g_LinkMap.end()) {
+            g_pNet->CSend(itor->second, "heartbeat", strlen("heartbeat") + 1);
+            itor++;
+        }
+    }
+}
+
+
+#include "CURL/curl.h"
+#include <io.h>
+//这是libcurl接收数据的回调函数，相当于recv的死循环  
+//其中stream可以自定义数据类型，这里我传入的是文件保存路径  
+static size_t write_callback( void *ptr, size_t size, size_t nmemb, void *stream )  
+{  
+    ECHO("%s", (char *)ptr);
+    ECHO("Context length %d", strlen((char *)ptr));
+    return 0;
+}  
+
+
+int GetUrl( const char *url, char *savepath )  
+{  
+    CURL *curl;  
+    CURLcode res;  
+    struct curl_slist *chunk = NULL;  
+
+    curl = curl_easy_init();  
+    if ( curl ) {  
+        curl_easy_setopt( curl, CURLOPT_VERBOSE, 0L );
+        curl_easy_setopt( curl, CURLOPT_URL, url );
+        curl_easy_setopt( curl, CURLOPT_POST, 1);
+        //指定回调函数  
+        curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION, write_callback);  
+        char buff[512] = {0};
+        SafeSprintf(buff, sizeof(buff), "b=%s", "hello");
+        //这个变量可作为接收或传递数据的作用  
+        //curl_easy_setopt( curl, CURLOPT_WRITEDATA, buff, strlen(buff));
+        curl_easy_setopt( curl, CURLOPT_POSTFIELDS, buff, strlen(buff));
+        memset(buff, 0, sizeof(buff));
+
+        SafeSprintf(buff, sizeof(buff), "b=%s", "hell1");
+        res = curl_easy_perform( curl );  
+        if (res == CURLE_OK)  
+        {  
+            return 1;  
+        }  
+        return 0;  
+    }  
+
+    return 0;  
+}
+
+void testcurl() {
+    string filePath = ::GetAppPath();
+    filePath = filePath + "/curltest.txt";
+    if (GetUrl("http://10.10.0.188/curltest.php?hello=123", (char *)filePath.c_str())) {  
+        printf( "OK\n" );  
+    } 
+}
+
+#include "CHttpEngine.h"
+
+static s32 requesttimes = 1;
+
+enum {
+    HTTP_REQUEST_ID_RGS = 0,
+    HTTP_REQUEST_ID_LOGIN = 1,
+};
+
+class HttpTest : public IHttpHandle {
+public:
+    virtual void OnHttpBack(const s32 id, const s32 err,const void * data, const s32 datasize, const void * context, const s32 size) {
+        switch (id) {
+        case HTTP_REQUEST_ID_RGS:
+            ECHO("注册结果 %s", ::GBKToUTF8((char *)data).c_str());
+            break;
+        case HTTP_REQUEST_ID_LOGIN:
+
+            ECHO("登陆结果 %s", ::UTF8ToGBK((char *)data).c_str());
+            break;
+        }
+    }
+};
+
+void testHttpEngine() {
+    CHttpEngine * pEngine = NEW CHttpEngine;
+    pEngine->Start(8);
+    HttpTest test;
+
+    for (s32 i=0; i<5000; i++) {
+        char szUrl[512] = {0};
+        SafeSprintf(szUrl, sizeof(szUrl), "http://10.10.0.188/Account.php?function=1&name=alax%d&passwd=alax%d", i, i);
+        pEngine->HGetRequest(HTTP_REQUEST_ID_RGS, szUrl, strlen(szUrl) + 1, &test, &i, sizeof(i));
+        s64 lTick = 5 - pEngine->HttpBackCall(5);
+        if (lTick >= 0) {
+            CSleep(lTick);
+        }
+    }
+
+    for (s32 i=0; i<5000; i++) {
+        char szUrl[512] = {0};
+        SafeSprintf(szUrl, sizeof(szUrl), "http://10.10.0.188/Account.php");
+        char szArgs[512] = {0};
+        SafeSprintf(szArgs, sizeof(szArgs), "name=alax%d&passwd=alax%d", i, i);
+        pEngine->HPostRequest(HTTP_REQUEST_ID_LOGIN, szUrl, strlen(szUrl) + 1, szArgs, strlen(szArgs) + 1, &test, &i, i);
+        s64 lTick = 5 - pEngine->HttpBackCall(5);
+        if (lTick >= 0) {
+            CSleep(lTick);
+        }
+    }
+}
+
+s32 main(int argc, char * args[]) {
+//    testLogger();
+    //testcurl();
+    //testHttpEngine();
+    testCoreNet();
+
+//    testCallBack();
+//     testHashMap();
+//     core::CoreHeaderInit();
+//     testCTimerEngine();
+//     core::CoreHeaderRelease();
+    return 0;
+}
+

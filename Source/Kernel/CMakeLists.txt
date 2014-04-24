@@ -1,71 +1,119 @@
-#cmake file for project association                     #è¡¨ç¤ºæ³¨é‡Š
-#author:å¤§T
+#cmake file for project association
+#author:´óT
 #created:2013/4/9
 
-#ç›¸å…³å¤´æ–‡ä»¶çš„ç›®å½•
+#Ïà¹ØÍ·ÎÄ¼þµÄÄ¿Â¼
 IF(UNIX)
     INCLUDE_DIRECTORIES(
         "../Public"
+        "../Library"
         "./API"
         "./Core"
-        "./Libaray"
     )
 ENDIF(UNIX)
 
 IF(WIN32)
     INCLUDE_DIRECTORIES(
-        "C:/mysql/include/"
         "../Public"
+        "../Library"
         "./API"
         "./Core"
-        "./Libaray"
+        "./Core/Interface"
+        "./Core/Subunit"
     )
+    
+    SET(STATIC_LIBRARYS
+        "${PROJECT_SOURCE_DIR}/Source/Library/CURL/libcurl_imp.lib"
+    )
+
 ENDIF(WIN32)
 
 IF(WIN64)
     INCLUDE_DIRECTORIES(
         "../Public"
+        "../Library"
         "./API"
         "./Core"
-        "./Libaray"
+        "./Core/Interface"
+        "./Core/Subunit"
+    )
+    
+    SET(STATIC_LIBRARYS
+        "${PROJECT_SOURCE_DIR}/Source/Library/CURL/libcurl_imp.lib"
     )
 ENDIF(WIN64)
 
 IF(APPLE)
     INCLUDE_DIRECTORIES(
         "../Public"
+        "../Library"
         "./API"
         "./Core"
-        "./Libaray"
+        "./Core/Interface"
+        "./Core/Subunit"
     )
 ENDIF(APPLE)
 
-#è®¾ç½®å˜é‡ï¼Œè¡¨ç¤ºæ‰€æœ‰çš„æºæ–‡ä»¶
+#ÉèÖÃ±äÁ¿£¬±íÊ¾ËùÓÐµÄÔ´ÎÄ¼þ
 SET(SOURCE_FILES
     "main.cpp"
 )
 
 SET(CORE_FILES
+    "./Core/CoreHeader.h"
+    "./Core/CoreHeader.cpp"
+    "./Core/CCallEngine.h"
+    "./Core/CHttpEngine.h"
+    "./Core/CHttpEngine.cpp"
+    "./Core/CTimer.h"
+    "./Core/CTimer.cpp"
+    "./Core/CTimerEngine.h"
+    "./Core/CTimerEngine.cpp"
     "./Core/DBProxy.h"
     "./Core/DBProxy.cpp"
+    "./Core/ITimerHandler.cpp"
+    "./Core/Kernel.h"
+    "./Core/Kernel.cpp"
+)
+
+SET(CORE_NET_SUBUNIT
+    "./Core/Subunit/Header.h"
+    "./Core/Subunit/Header.cpp"
+    "./Core/Subunit/CInetAddress.h"
+    "./Core/Subunit/CInetAddress.cpp"
+)
+
+SET(CORE_NET_WINDOWS
+    "./Core/Windows/CConnection.h"
+    "./Core/Windows/CNet.h"
+    "./Core/Windows/CNet.cpp"
+    "./Core/Windows/iocp.h"
+    "./Core/Windows/iocp.c"
+    "./Core/Windows/iocp_event.h"
+    "./Core/Windows/iocp_event.c"
 )
 
 SET(CORE_INTERFACE
     "./Core/Interface/ICore.h"
+    "./Core/Interface/ICallEngine.h"
     "./Core/Interface/IDBProxy.h"
+    "./Core/Interface/INet.h"
+    "./Core/Interface/ITimerEngine.h"
 )
-
 
 SET(API
     "./API/IKernel.h"
     "./API/IModule.h"
-    "./API/ITimer.h"
+    "./API/ITimerHandler.h"
+    "./API/IHttpHandler.h"
 )
-
 
 SOURCE_GROUP(\\ FILES ${SOURCE_FILES})
 SOURCE_GROUP(Core FILES ${CORE_FILES})
 SOURCE_GROUP(Core\\Interface FILES ${CORE_INTERFACE})
+SOURCE_GROUP(Core\\Subunit FILES ${CORE_NET_SUBUNIT})
+SOURCE_GROUP(Core\\Windows FILES ${CORE_NET_WINDOWS})
+SOURCE_GROUP(Public\\tinyxml FILES ${TINYXML_FILES})
 SOURCE_GROUP(Public FILES ${PUBLIC_FILES})
 SOURCE_GROUP(API FILES ${API})
 
@@ -74,24 +122,25 @@ MESSAGE(STATUS "API : ${API}")
 MESSAGE(STATUS "Core : ${CORE_FILES}")
 MESSAGE(STATUS "Core/Interface : ${CORE_INTERFACE}")
 
-#ç›¸å…³åº“æ–‡ä»¶çš„ç›®å½•
+#Ïà¹Ø¿âÎÄ¼þµÄÄ¿Â¼
 #LINK_DIRECTORIES(
 #/usr/local/lib
 #)
 
-#è®¾ç½®è¾“å‡ºè·¯å¾„,å¹¶ä¸”ç”Ÿæˆå¯æ‰§è¡Œå¼•æ“Žæ–‡ä»¶
-SET(EXECUTABLE_OUTPUT_PATH "${OUTPUT_PATH}/main")
-ADD_EXECUTABLE(main
+#ÉèÖÃÊä³öÂ·¾¶,²¢ÇÒÉú³É¿ÉÖ´ÐÐÒýÇæÎÄ¼þ
+SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+
+#ÒÀÀµµÄ¿âÎÄ¼þ
+ADD_EXECUTABLE(Kernel
     ${SOURCE_FILES}
     ${CORE_FILES}
     ${CORE_INTERFACE}
+    ${CORE_NET_SUBUNIT}
+    ${CORE_NET_WINDOWS}
     ${PUBLIC_FILES}
+    ${TINYXML_FILES}
     ${API}
 )
 
-#ä¾èµ–çš„åº“æ–‡ä»¶
-#TARGET_LINK_LIBRARY(association core)
+TARGET_LINK_LIBRARIES(Kernel ${STATIC_LIBRARYS})
 
-#è¡¨ç¤ºç”Ÿæˆçš„æ‰§è¡Œæ–‡ä»¶æ‰€åœ¨è·¯å¾„
-#SET_TARGET_PROPERTIES(utility PROPERTIES
-#RUNTIME_OUTPUT_DIRECTORY> "${OUTPUT_PATH}/libnet")

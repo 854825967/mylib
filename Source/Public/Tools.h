@@ -4,5 +4,6 @@
 #include "WinTools.h"
 #include "LinuxTools.h"
 #include "MacTools.h"
+#include "IOSTools.h"
 
 #endif

@@ -5,6 +5,7 @@
 
 #include "MultiSys.h"
 #include "CLock.h"
+using namespace tlib;
 
 // CConsole
 // 封装控制台的输入输出功能类

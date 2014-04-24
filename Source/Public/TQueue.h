@@ -1,6 +1,9 @@
 #ifndef TQUEUE_H
 #define TQUEUE_H
+#include "MultiSys.h"
 #include "CLock.h"
+#include <stdio.h>
+#include <string.h>
 
 #define QUEUE_OPT_LOCK(b, lock) \
     if (b) { \
@@ -15,9 +18,9 @@ enum {
     NOT_EXISTS_DATA = 0,
     EXISTS_DATA = 1
 };
+
 namespace tlib {
-    typedef void (*default_fun_type)();
-    template <typename type, bool lock = false, const s32 size = 4096, const void * pfun = NULL, typename... Args>
+    template <typename type, bool lock, const s32 size, typename funtype = VOID_FUN_TYPE, funtype pfun = _void_fun, typename... Args>
     class TQueue {
     public:
         TQueue() {
@@ -42,18 +45,17 @@ namespace tlib {
             }
         }
 
-        typedef void (*fun_type)(type &, Args...);
         inline void addByArgs(Args... args) {
             QUEUE_OPT_LOCK(lock, m_pWlock);
             while (m_sign[m_nWIndex] != NOT_EXISTS_DATA) {
-                CSleep(10);
+                CSleep(1);
             }
 
             if (pfun != NULL) {
-                ((fun_type)pfun)(m_queue[m_nWIndex++], args...);
+                (pfun)(m_queue[m_nWIndex], args...);
             }
             m_nWCount++;
-            m_sign[m_nWIndex-1] = EXISTS_DATA;
+            m_sign[m_nWIndex++] = EXISTS_DATA;
 
             if (m_nWIndex >= size) {
                 m_nWIndex = 0;
@@ -64,9 +66,8 @@ namespace tlib {
         inline void add(type src) {
             QUEUE_OPT_LOCK(lock, m_pWlock);
             while (m_sign[m_nWIndex] != NOT_EXISTS_DATA) {
-                CSleep(10);
+                CSleep(1);
             }
-
 
             m_queue[m_nWIndex] = src;
             m_sign[m_nWIndex++] = EXISTS_DATA;
@@ -77,10 +78,26 @@ namespace tlib {
             QUEUE_OPT_FREELOCK(lock, m_pWlock);
         }
 
-        inline bool read(type & value) {//不可在多个线程中使用 谢谢
+        inline bool add2(type src) {
+            QUEUE_OPT_LOCK(lock, m_pWlock);
+            while (m_sign[m_nWIndex] != NOT_EXISTS_DATA) {
+                QUEUE_OPT_FREELOCK(lock, m_pWlock);
+                return false;
+            }
+
+            m_queue[m_nWIndex] = src;
+            m_sign[m_nWIndex++] = EXISTS_DATA;
+            m_nWCount++;
+            if (m_nWIndex >= size) {
+                m_nWIndex = 0;
+            }
+            QUEUE_OPT_FREELOCK(lock, m_pWlock);
+            return true;
+        }
+
+        inline bool read(type & value) {
             QUEUE_OPT_LOCK(lock, m_pRlock);
             while (m_sign[m_nRIndex] != EXISTS_DATA) {
-                CSleep(10);
                 QUEUE_OPT_FREELOCK(lock, m_pRlock);
                 return false;
             }

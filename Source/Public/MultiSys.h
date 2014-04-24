@@ -3,16 +3,20 @@
 #include "WinSys.h"
 #include "LinuxSys.h"
 #include "MacSys.h"
+#include "IOSSys.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void _AssertionFail(const char * strFile, int nLine, const char * pFunName);
+    void _AssertionFail(const char * strFile, int nLine, const char * pFunName);
+    typedef void (*VOID_FUN_TYPE)(void);
+    void _void_fun(void);
 #ifdef __cplusplus
 };
 #endif
 
-#ifdef _DEBUG
+
+#if defined _DEBUG
 //#define NEW ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define NEW new
 #define MALLOC malloc
@@ -24,7 +28,7 @@ void _AssertionFail(const char * strFile, int nLine, const char * pFunName);
 #define NEW new
 #define MALLOC malloc
 #define FREE free
-#define  ASSERT(p) (p);
+#define  ASSERT(p)
 #endif //_DEBUG
 
 #define BUFF_SIZE 4096

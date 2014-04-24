@@ -11,6 +11,10 @@ using namespace stdext;
 using namespace std;
 using namespace std::tr1;
 #define CHashMap unordered_map
+#elif defined CC_TARGET_OS_IPHONE
+#include <map>
+#define CHashMap map
+using namespace std;
 #endif //defined WIN32 || defined WIN64
 
 #endif //CHASHMAP_H

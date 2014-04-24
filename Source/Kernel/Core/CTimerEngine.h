@@ -19,6 +19,8 @@ namespace core {
     private:
         HandlerTimerMap m_Map_TimerHandler;
         tlib::TPOOL<CTimer, false, 8096> m_Pool_Timer;
+        HandlerTimerMap::iterator m_itor;
+
     };
 }
 

@@ -9,6 +9,14 @@ inline ThreadID GetCurrentThreadID() {
     return ::GetCurrentThreadId();
 }
 
+inline std::string GetHostIp(const char * pUrl){
+    struct hostent *hp;
+    struct in_addr in;
+    hp = gethostbyname(pUrl);
+    memcpy (&in.s_addr,hp->h_addr,4);
+    return inet_ntoa(in);
+}
+
 inline s64 GetCurrentTimeTick() {
     SYSTEMTIME wtm;
     GetLocalTime(&wtm);
@@ -137,21 +145,21 @@ inline std::string StringReplace(const char * pString, const char * pSrc, const 
 
     std::string strSrc = pString;
     char * pChSrc = (char *)strSrc.c_str();
-    int nOldLen = strlen(pChSrc);
-    int nSrcLen = strlen(pSrc);
+    s32 nOldLen = strlen(pChSrc);
+    s32 nSrcLen = strlen(pSrc);
     if (0 == nSrcLen) {
         ASSERT(false);
         return NULL;
     }
 
-    int nReplaceLen = strlen(pReplace);
+    s32 nReplaceLen = strlen(pReplace);
     char * pStart = pChSrc;
     char * pEnd = pStart + nOldLen;
     char * pTarget = NULL;
 
     while (pStart < pEnd) {
         while ((pTarget = (char *)_mbsstr((const unsigned char *)pStart, (const unsigned char *)pSrc)) != NULL) {
-            int nBalance = nOldLen - (pTarget - pChSrc + nSrcLen);
+            s32 nBalance = nOldLen - (pTarget - pChSrc + nSrcLen);
             memmove(pTarget + nReplaceLen, pTarget + nSrcLen, nBalance * sizeof(char));
             memcpy(pTarget, pReplace, nReplaceLen * sizeof(char));
             pStart = pTarget + nReplaceLen;

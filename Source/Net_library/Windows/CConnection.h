@@ -3,6 +3,8 @@
 
 #include "MultiSys.h"
 #include "CStream.h"
+#include "CLockUnit.h";
+using namespace tlib;
 
 class CConnection {
 public:
@@ -11,6 +13,8 @@ public:
     void * pContext;
     bool bShutdown;
     SOCKET s;
+    s32 nSDTags;
+    CLockUnit sdlock;
     CStream stream;
     CConnection() {
         memset(szIP, 0, sizeof(szIP));
@@ -18,6 +22,7 @@ public:
         pContext = NULL;
         s = INVALID_SOCKET;
         bShutdown = false;
+        nSDTags = 0;
     }
 };
 

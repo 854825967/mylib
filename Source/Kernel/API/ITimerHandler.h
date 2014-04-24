@@ -1,7 +1,8 @@
 #ifndef ITIMERHANDLER_H
 #define ITIMERHANDLER_H
 #include "MultiSys.h"
-#include "CHashMap.h"
+#include <map>
+using namespace std;
 
 #define LOOP_TIMER 0
 #define TIMERS_OVER 1
@@ -10,7 +11,7 @@ namespace core {
     class CTimer;
     class ITimerEngine;
 
-    typedef CHashMap<s32, CTimer *> HandlerTimerMap;
+    typedef map<s32, CTimer *> HandlerTimerMap;
 
     class ITimerHandler {
     public:

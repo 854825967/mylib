@@ -4,6 +4,7 @@ namespace core {
 
     CTimerEngine::CTimerEngine() {
         m_Map_TimerHandler.clear();
+        m_itor = m_Map_TimerHandler.begin();
     }
 
     bool CTimerEngine::SetTimer(const s32 id, const s32 tickcount, const s32 calltimes, ITimerHandler * pHandler, const char * debugstr) {
@@ -30,6 +31,9 @@ namespace core {
                 pTimer->RemoveTimer(id);
                 CORE_DEBUG("定时器池回收定时器, 地址:%lx, 定时器当前ID:%d, 调试信息:%s", itor->second, id, itor->second->m_debug_str);
                 m_Pool_Timer.Recover(itor->second);
+                if (m_itor == itor) {
+                    m_itor ++;
+                }
                 m_Map_TimerHandler.erase(itor);
             }
         }
@@ -42,37 +46,38 @@ namespace core {
     }
 
     s64 CTimerEngine::OnTimer(const s64 max_tickcounts) {
-        static HandlerTimerMap::iterator itor = m_Map_TimerHandler.begin();
         HandlerTimerMap::iterator iend = m_Map_TimerHandler.end();
         s64 lStartTick = ::GetCurrentTimeTick();
         s64 lCurrentTick = lStartTick;
-        while (itor != iend) {
-            while (lStartTick - itor->second->m_currenttick >= itor->second->m_tickcount) {
+        while (m_itor != iend) {
+            while (lStartTick - m_itor->second->m_currenttick >= m_itor->second->m_tickcount) {
                 s64 lTick = ::GetCurrentTimeTick();
-                s32 nLeftCount = itor->second->OnTimer();
+                s32 nLeftCount = m_itor->second->OnTimer();
                 lCurrentTick = ::GetCurrentTimeTick();
-                CORE_DEBUG("定时器%d,定时器信息:%s,单次执行耗时%d", itor->second->m_id, itor->second->m_debug_str, lCurrentTick - lTick);
+                CORE_DEBUG("定时器%d,定时器信息:%s,单次执行耗时%d", m_itor->second->m_id, m_itor->second->m_debug_str, lCurrentTick - lTick);
                 if (TIMERS_OVER == nLeftCount) {
-                    itor->second->m_pHandler->RemoveTimer(itor->second->m_id);
-                    CORE_DEBUG("定时器池回收定时器, 地址:%lx, 定时器当前ID:%d, 调试信息:%s", itor->second, itor->second->m_id, itor->second->m_debug_str);
-                    m_Pool_Timer.Recover(itor->second);
-                    itor = m_Map_TimerHandler.erase(itor);
+                    m_itor->second->m_pHandler->RemoveTimer(m_itor->second->m_id);
+                    CORE_DEBUG("定时器池回收定时器, 地址:%lx, 定时器当前ID:%d, 调试信息:%s", m_itor->second, m_itor->second->m_id, m_itor->second->m_debug_str);
+                    m_Pool_Timer.Recover(m_itor->second);
+                    m_Map_TimerHandler.erase(m_itor++);
                     break;
                 }
             }
-            if (itor == iend) {
-                break;
+
+            if (m_itor == iend) {
+                m_Map_TimerHandler.begin();
             } else {
-                itor++;
+                m_itor++;
             }
+
             if (lCurrentTick - lStartTick >= max_tickcounts) {
                 CORE_DEBUG("定时器引擎loop超时");
                 break;
             }
         }
 
-        if (itor == iend) {
-            itor = m_Map_TimerHandler.begin();
+        if (m_itor == iend) {
+            m_itor = m_Map_TimerHandler.begin();
         }
 
         return 0;

@@ -48,6 +48,33 @@ IF(APPLE)
 ENDIF(APPLE)
 
 #设置公共库代码目录
+SET(JSONCPP_FILES
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/autolink.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/config.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/features.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/forwards.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_batchallocator.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_internalarray.inl"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_internalmap.inl"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_reader.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_value.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_valueiterator.inl"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/json_writer.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/reader.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/value.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/json/writer.h"
+)
+
+SET(TINYXML_FILES
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinystr.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinystr.CPP"
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinyxml.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinyxml.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinyxmlparser.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/tinyxml/tinyxmlerror.cpp"
+)
+
 SET(PUBLIC_FILES
     "${PROJECT_SOURCE_DIR}/Source/Public/MultiSys.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/MultiSys.cpp"
@@ -66,17 +93,21 @@ SET(PUBLIC_FILES
     "${PROJECT_SOURCE_DIR}/Source/Public/Console.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/WinConsole.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/WinConsole.cpp"
-    "${PROJECT_SOURCE_DIR}/Source/Public/CStream.h"
-    "${PROJECT_SOURCE_DIR}/Source/Public/CStream.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/TStream.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/TAttribute.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/CDumper.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/CDumper.cpp"
     "${PROJECT_SOURCE_DIR}/Source/Public/TLogger.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/TCallBack.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/Logfile.cpp"
+    "${PROJECT_SOURCE_DIR}/Source/Public/IOSSys.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/CHashMap.h"
+    "${PROJECT_SOURCE_DIR}/Source/Public/IOSTools.h"
     "${PROJECT_SOURCE_DIR}/Source/Public/Logfile.cpp"
 )
 
-MESSAGE(STATUS "Public files : ${PUBLIC_FILES}")
-
 #添加子目录
-ADD_SUBDIRECTORY(./Source/Net_library)
-ADD_SUBDIRECTORY(./Source/Log_library)
+#ADD_SUBDIRECTORY(./Source/Net_library)
+#ADD_SUBDIRECTORY(./Source/Log_library)
 ADD_SUBDIRECTORY(./Source/Kernel)
+ADD_SUBDIRECTORY(./Source/Logic)
